@@ -302,6 +302,13 @@ fieldset.relgroup legend{
   font-size:20px; padding:12px; border:1px solid var(--line); border-radius:var(--radius);
   background:var(--card);
 }
+.codebox-wrap{ position:relative; width:220px; margin:18px auto 6px; }
+.codebox-wrap .codebox{ width:100%; margin:0; padding-right:44px; }
+.eye-toggle{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  background:none; border:none; font-size:19px; cursor:pointer; padding:4px 6px;
+  color:var(--ink-2); line-height:1;
+}
 .toast{
   position:fixed; left:50%; bottom:28px; transform:translateX(-50%);
   background:var(--ink); color:var(--paper); padding:11px 18px; border-radius:24px;
@@ -1147,12 +1154,24 @@ routes.share = () => {
   setTop("Ouvrir l'application","Lien & QR Code", true);
   const appUrl = location.origin + location.pathname.replace(/index\.html$/,"");
   let svg = "";
-  try{
-    const qr = qrcode(0, "M");
-    qr.addData(appUrl);
-    qr.make();
-    svg = qr.createSvgTag(6, 16);
-  }catch(e){ svg = "<p>QR indisponible</p>"; }
+  let qrMissing = false;
+  if(typeof qrcode === "function"){
+    try{
+      const qr = qrcode(0, "M");
+      qr.addData(appUrl);
+      qr.make();
+      svg = qr.createSvgTag(6, 16);
+    }catch(e){ console.warn("Erreur génération QR:", e); qrMissing = true; }
+  }else{
+    qrMissing = true;
+  }
+  if(qrMissing){
+    // Solution de secours : générateur QR en ligne (nécessite une connexion internet).
+    // Le QR intégré (hors ligne) reviendra automatiquement dès que qrcode.js sera
+    // bien présent sur le serveur, à côté d'index.html.
+    const fallbackUrl = "https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=" + encodeURIComponent(appUrl);
+    svg = `<img src="${fallbackUrl}" alt="QR code" width="220" height="220" onerror="this.outerHTML='<p style=&quot;font-size:13px;max-width:220px;&quot;>QR indisponible pour l\\'instant (pas de connexion et le fichier qrcode.js semble manquant sur le serveur).</p>'">`;
+  }
 
   mainEl.innerHTML = `
     <div class="panel">
@@ -1160,6 +1179,7 @@ routes.share = () => {
       <div class="body" style="text-align:center;">
         <p class="hint" style="margin-bottom:14px;">Scannez ce code avec l'appareil photo du téléphone, ou partagez le lien ci-dessous à vos assistants.</p>
         <div style="background:#fff; display:inline-block; padding:10px; border-radius:8px; border:1px solid var(--line);">${svg}</div>
+        ${qrMissing ? `<p class="hint" style="color:var(--stamp); margin-top:10px;">⚠️ Le fichier <strong>qrcode.js</strong> n'a pas été trouvé sur le serveur — vérifiez qu'il a bien été téléversé sur GitHub, au même endroit que index.html, puis rechargez cette page.</p>` : ""}
         <div class="field" style="margin-top:18px; text-align:left;">
           <label>Lien de l'application</label>
           <input id="appLinkInput" value="${appUrl}" readonly>
@@ -1188,13 +1208,23 @@ routes.adminLogin = () => {
       <div class="padlock">🔐</div>
       <h2 style="margin:0 0 4px;">Code d'accès administrateur</h2>
       <p class="hint">Code global (fondateur) ou code superviseur régional.</p>
-      <input type="password" id="codeInput" class="codebox mono" placeholder="••••••••">
+      <div class="codebox-wrap">
+        <input type="password" id="codeInput" class="codebox mono" placeholder="••••••••" autocomplete="off">
+        <button type="button" class="eye-toggle" id="eyeToggle" aria-label="Afficher/masquer le code">👁️</button>
+      </div>
       <div class="err" id="codeErr"></div>
       <div style="max-width:280px;margin:18px auto 0;">
         <button class="btn stamp" id="codeSubmit">Entrer</button>
       </div>
     </div>
   `;
+  $("#eyeToggle").onclick = ()=>{
+    const inp = $("#codeInput");
+    const showing = inp.type === "text";
+    inp.type = showing ? "password" : "text";
+    $("#eyeToggle").textContent = showing ? "👁️" : "🙈";
+    inp.focus();
+  };
   $("#codeSubmit").onclick = ()=>{
     const val = $("#codeInput").value;
     if(val === ADMIN_CODE){ session.role="admin"; session.region=null; nav("adminHome"); }
