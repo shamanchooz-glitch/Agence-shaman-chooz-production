@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>AGENCE SHAMAN CHOOZ PRODUCTION — Fiches &amp; Placements</title>
+<meta name="theme-color" content="#23324A">
+<meta name="description" content="Application de recrutement et de suivi des placements — AGENCE SHAMAN CHOOZ PRODUCTION">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#20304A;
+  --ink-2:#3A4C6B;
+  --paper:#F1ECDF;
+  --paper-2:#E7DFCB;
+  --card:#FBF8F1;
+  --stamp:#8A2E2A;
+  --stamp-2:#B0453E;
+  --gold:#A97F2E;
+  --green:#3E6B4F;
+  --line:#C9BFA4;
+  --dotted: repeating-linear-gradient(90deg, var(--ink-2) 0 3px, transparent 3px 8px);
+  --shadow: 0 1px 0 rgba(32,48,74,.08), 0 8px 24px -12px rgba(32,48,74,.35);
+  --radius: 4px;
+}
+*{box-sizing:border-box;}
+html[data-theme="dark"]{
+  --ink:#EDE7D6; --ink-2:#B9AF95; --paper:#161B22; --paper-2:#20262F;
+  --card:#1C222B; --line:#333B47; --stamp:#C7524A; --stamp-2:#D9685F;
+  --gold:#D3A94E; --green:#5FA37A;
+}
+html[data-theme="dark"] body{background: radial-gradient(1200px 600px at 100% -10%, #ffffff08, transparent), var(--paper);}
+html[data-theme="dark"] .thumb{background:var(--paper-2);}
+.theme-toggle{
+  background:none;border:1px solid #ffffff30;color:var(--paper);
+  border-radius:50%;width:34px;height:34px;font-size:15px;cursor:pointer;flex:none;
+  display:flex;align-items:center;justify-content:center;
+}
+.lang-toggle{
+  background:none;border:1px solid #ffffff30;color:var(--paper);
+  border-radius:20px;padding:6px 10px;font-size:11.5px;cursor:pointer;flex:none;
+}
+.checklist{display:flex; flex-direction:column; gap:10px;}
+.checklist label{display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer;}
+.checklist input[type=checkbox]{width:18px;height:18px;accent-color:var(--stamp);}
+.progressbar{height:8px; background:var(--paper-2); border-radius:6px; overflow:hidden; margin:10px 0;}
+.progressbar .fill{height:100%; background:var(--green); transition:width .3s;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(1200px 600px at 100% -10%, #ffffff20, transparent),
+    var(--paper);
+  color:var(--ink);
+  font-family:'Public Sans', -apple-system, sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.display{font-family:'Fraunces', serif;}
+.mono{font-family:'IBM Plex Mono', monospace;}
+button{font-family:inherit;}
+a{color:inherit;}
+
+/* ---- App shell ---- */
+#app{max-width:720px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
+header.topbar{
+  background:var(--ink);
+  color:var(--paper);
+  padding:14px 18px;
+  display:flex; align-items:center; gap:12px;
+  position:sticky; top:0; z-index:40;
+  box-shadow:var(--shadow);
+}
+header.topbar .avatar-btn{
+  width:40px;height:40px;border-radius:50%;
+  border:2px solid var(--gold);
+  padding:0; overflow:hidden; flex:none; cursor:pointer;
+  background:var(--paper-2);
+  -webkit-tap-highlight-color:transparent;
+}
+header.topbar .avatar-btn img{width:100%;height:100%;object-fit:cover;display:block;}
+header.topbar .avatar-btn.hide{visibility:hidden;}
+
+.avatar-overlay{
+  position:fixed; inset:0; background:rgba(18,24,36,.94);
+  display:flex; align-items:center; justify-content:center;
+  z-index:100; opacity:0; pointer-events:none;
+  transition:opacity .3s ease;
+  padding:24px; cursor:zoom-out;
+}
+.avatar-overlay.show{opacity:1; pointer-events:auto;}
+.avatar-overlay img{
+  width:min(78vw,360px); height:min(78vw,360px);
+  border-radius:50%; object-fit:cover;
+  border:3px solid var(--gold);
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+  transform:scale(.85);
+  transition:transform .32s cubic-bezier(.2,.9,.3,1.2);
+}
+.avatar-overlay.show img{transform:scale(1);}
+header.topbar .titles{flex:1; min-width:0;}
+header.topbar .titles .t1{font-family:'Fraunces',serif; font-weight:700; font-size:16.5px; line-height:1.15;}
+header.topbar .titles .t2{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#C9D3E0; margin-top:1px;}
+header.topbar .back{
+  background:none;border:1px solid #ffffff30;color:var(--paper);
+  padding:7px 11px;border-radius:20px;font-size:12.5px;cursor:pointer;
+}
+header.topbar .who{font-size:11px;color:#C9D3E0;text-align:right;line-height:1.3;}
+
+main{flex:1; padding:18px 16px 100px;}
+
+/* ---- Home ---- */
+.hero{
+  text-align:center; padding:34px 10px 22px;
+}
+.hero .stampmark{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:84px;height:84px;border-radius:50%;
+  border:3px solid var(--gold);
+  color:var(--stamp); font-family:'Fraunces',serif; font-weight:700; font-size:26px;
+  overflow:hidden;
+  margin-bottom:14px;
+  cursor:pointer;
+}
+.hero h1{font-size:26px; margin:0 0 6px; color:var(--ink);}
+.hero p{font-size:14px;color:var(--ink-2); max-width:36ch; margin:0 auto;}
+
+.choice-grid{display:grid; gap:14px; margin-top:26px;}
+.choice-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px;
+  display:flex; align-items:center; gap:14px;
+  cursor:pointer; text-align:left;
+  box-shadow:var(--shadow);
+  transition:transform .15s ease;
+}
+.choice-card:active{transform:scale(.98);}
+.choice-card .icon{
+  width:46px;height:46px;border-radius:50%;
+  background:var(--paper-2); display:flex;align-items:center;justify-content:center;
+  font-size:20px; flex:none;
+}
+.choice-card .txt h3{margin:0 0 3px;font-size:16px;}
+.choice-card .txt p{margin:0;font-size:12.5px;color:var(--ink-2);}
+
+/* ---- Cards / Forms ---- */
+.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  margin-bottom:16px;
+}
+.panel .head{
+  background:var(--paper-2);
+  padding:12px 16px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;
+}
+.panel .head h2{font-size:14.5px;margin:0;letter-spacing:.02em;}
+.panel .head .num{
+  font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--stamp);
+  border:1px solid var(--stamp); border-radius:20px; padding:2px 9px;
+}
+.panel .body{padding:16px;}
+
+.field{margin-bottom:16px;}
+.field label{
+  display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--ink-2); margin-bottom:6px; font-weight:600;
+}
+.field input, .field select, .field textarea{
+  width:100%; border:none; border-bottom:2px dotted var(--line);
+  background:transparent; padding:6px 2px 8px;
+  font-size:15px; color:var(--ink); font-family:inherit;
+  outline:none;
+}
+.field input:focus, .field select:focus, .field textarea:focus{
+  border-bottom-color:var(--stamp); border-bottom-style:solid;
+}
+.field textarea{resize:vertical; min-height:56px;}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:0 14px;}
+
+fieldset.relgroup{
+  border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px 12px 2px; margin:0 0 14px;
+}
+fieldset.relgroup legend{
+  font-family:'Fraunces',serif; font-size:13px; padding:0 8px; color:var(--stamp);
+}
+
+.section-title{
+  font-family:'Fraunces',serif; font-size:15px; margin:22px 0 10px; color:var(--ink);
+  display:flex; align-items:center; gap:8px;
+}
+.section-title::after{content:"";flex:1;height:1px;background:var(--line);}
+
+.photo-box{
+  display:flex; align-items:center; gap:14px; margin-bottom:18px;
+}
+.photo-box .thumb{
+  width:78px;height:96px; border:2px solid var(--ink); background:var(--paper-2);
+  display:flex;align-items:center;justify-content:center; overflow:hidden; flex:none;
+  font-size:10px; color:var(--ink-2); text-align:center; border-radius:2px;
+}
+.photo-box .thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-box .actions{display:flex; flex-direction:column; gap:8px;}
+.btn-sm{
+  border:1px solid var(--ink); background:var(--card); color:var(--ink);
+  padding:7px 12px; border-radius:20px; font-size:12.5px; cursor:pointer;
+}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  background:var(--ink); color:var(--paper);
+  border:none; border-radius:24px; padding:13px 20px;
+  font-size:14.5px; font-weight:600; cursor:pointer; width:100%;
+}
+.btn.stamp{background:var(--stamp);}
+.btn.ghost{background:transparent;border:1.5px solid var(--ink); color:var(--ink);}
+.btn.gold{background:var(--gold);}
+.btn:active{transform:scale(.985);}
+.btn[disabled]{opacity:.5;}
+
+.hint{font-size:12px;color:var(--ink-2);margin-top:4px;}
+.err{color:var(--stamp); font-size:12.5px; margin-top:8px;}
+.ok-banner{
+  background:#EAF1EC;border:1px solid var(--green);color:var(--green);
+  padding:12px 14px;border-radius:var(--radius);font-size:13.5px;margin-bottom:14px;
+}
+
+/* ---- Lists / Admin ---- */
+.statgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px;}
+.statcard{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px 10px; text-align:center;
+}
+.statcard .n{font-family:'Fraunces',serif; font-size:22px; color:var(--stamp);}
+.statcard .l{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2);margin-top:2px;}
+
+.searchbar{display:flex; gap:8px; margin-bottom:14px;}
+.searchbar input{
+  flex:1; border:1px solid var(--line); border-radius:20px; padding:10px 14px;
+  font-size:14px; background:var(--card); outline:none;
+}
+.searchbar input:focus{border-color:var(--stamp);}
+
+.rowitem{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px 14px; margin-bottom:10px; display:flex; gap:12px; align-items:center;
+  cursor:pointer;
+}
+.rowitem .av{
+  width:42px;height:42px;border-radius:50%;background:var(--paper-2);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;
+  font-family:'Fraunces',serif;color:var(--ink-2);font-size:15px;
+}
+.rowitem .av img{width:100%;height:100%;object-fit:cover;}
+.rowitem .info{flex:1;min-width:0;}
+.rowitem .info .n1{font-weight:600;font-size:14.5px;}
+.rowitem .info .n2{font-size:12px;color:var(--ink-2);margin-top:2px;}
+.badge{
+  font-size:10.5px; padding:3px 9px; border-radius:20px; font-weight:600;
+  white-space:nowrap;
+}
+.badge.actif{background:#EAF1EC;color:var(--green);}
+.badge.termine{background:#EEE7D6;color:var(--gold);}
+.badge.dispo{background:#E8EEF5;color:var(--ink-2);}
+.badge.attente{background:#FBE9E7;color:var(--stamp);}
+
+.tabs{display:flex; gap:6px; margin-bottom:16px; overflow-x:auto;}
+.tabs button{
+  flex:none; background:var(--card); border:1px solid var(--line); color:var(--ink-2);
+  padding:8px 14px; border-radius:20px; font-size:12.5px; cursor:pointer;
+}
+.tabs button.on{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+
+.detail-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; font-size:13.5px;}
+.detail-grid .k{color:var(--ink-2); font-size:11px; text-transform:uppercase; letter-spacing:.04em;}
+.detail-grid .v{margin-bottom:8px;}
+
+.fab{
+  position:fixed; bottom:22px; right:calc(50% - 360px + 22px);
+  background:var(--stamp); color:#fff; border:none; border-radius:50%;
+  width:56px;height:56px; font-size:26px; box-shadow:var(--shadow); cursor:pointer;
+  display:flex;align-items:center;justify-content:center; z-index:30;
+}
+@media (max-width:760px){ .fab{right:22px;} }
+
+.center-msg{text-align:center; color:var(--ink-2); font-size:13.5px; padding:40px 20px;}
+.lockscreen{padding-top:60px; text-align:center;}
+.lockscreen .padlock{font-size:38px; margin-bottom:10px;}
+.codebox{
+  width:220px; margin:18px auto 6px; text-align:center; letter-spacing:.3em;
+  font-size:20px; padding:12px; border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--card);
+}
+.toast{
+  position:fixed; left:50%; bottom:28px; transform:translateX(-50%);
+  background:var(--ink); color:var(--paper); padding:11px 18px; border-radius:24px;
+  font-size:13px; box-shadow:var(--shadow); z-index:60; opacity:0; transition:opacity .25s;
+  max-width:88%; text-align:center;
+}
+.toast.show{opacity:1;}
+footer.foot{
+  text-align:center; font-size:10.5px; color:var(--ink-2); padding:16px; opacity:.65;
+}
+.offline-flag{
+  background:var(--gold); color:#fff; text-align:center; font-size:11.5px;
+  padding:5px; display:none;
+}
+.offline-flag.show{display:block;}
+@media print{
+  header.topbar, .tabs, .searchbar, .fab, .toast, .offline-flag, .btn{display:none !important;}
+  #receiptArea{border:none !important; box-shadow:none !important;}
+  body{background:#fff;}
+}
+</style>
+<script src="qrcode.js"></script>
+</head>
+<body>
+
+<div class="offline-flag" id="offlineFlag">Hors connexion — les données seront synchronisées dès le retour du réseau</div>
+
+<div id="app">
+  <header class="topbar">
+    <button class="avatar-btn" id="avatarBtn" aria-label="Voir la photo en plein écran">
+      <img src="avatar.jpg" alt="Fondateur — Agence Shaman Chooz Production">
+    </button>
+    <div class="titles">
+      <div class="t1" id="topTitle">Agence Shaman Chooz Production</div>
+      <div class="t2" id="topSub">Fiches &amp; Placements</div>
+    </div>
+    <div class="who" id="topWho"></div>
+    <button class="lang-toggle" id="langToggle">FR</button>
+    <button class="theme-toggle" id="themeToggle">🌓</button>
+    <button class="back" id="backBtn" style="display:none;">← Retour</button>
+  </header>
+  <main id="main"></main>
+</div>
+
+<div class="avatar-overlay" id="avatarOverlay">
+  <img src="profile-full.jpg" alt="Photo agrandie" id="avatarOverlayImg">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, updateDoc, doc, getDocs, getDoc,
+  query, orderBy, onSnapshot, serverTimestamp, enableIndexedDbPersistence,
+  arrayUnion, limit
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth, signInAnonymously, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+/* =========================================================
+   CONFIGURATION FIREBASE
+   Remplace les valeurs ci-dessous par celles de TON projet
+   Firebase (gratuit) — voir README-INSTALLATION.md fourni
+   à côté de ce fichier pour la marche à suivre pas à pas.
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyDv-jwjrB32qFQEzFj1unKD0evkmLH4OFg",
+  authDomain: "shaman-bara-center-agence.firebaseapp.com",
+  projectId: "shaman-bara-center-agence",
+  storageBucket: "shaman-bara-center-agence.firebasestorage.app",
+  messagingSenderId: "286946414728",
+  appId: "1:286946414728:web:65be4307ad1ffaadb40f3d"
+};
+
+const ADMIN_CODE = "Shaman123chooz";
+
+let fb = null, db = null, auth = null, fbReady = false;
+let authReadyPromise = Promise.resolve(null);
+try{
+  if(firebaseConfig.apiKey !== "REMPLACE_MOI"){
+    fb = initializeApp(firebaseConfig);
+    db = getFirestore(fb);
+    enableIndexedDbPersistence(db).catch(()=>{});
+    auth = getAuth(fb);
+    // Connexion anonyme automatique : chaque téléphone (agent ou admin)
+    // obtient une identité Firebase invisible pour l'utilisateur, mais
+    // exigée par les règles de sécurité Firestore (request.auth != null).
+    authReadyPromise = new Promise((resolve)=>{
+      onAuthStateChanged(auth, (user)=>{
+        if(user){ resolve(user); }
+        else{ signInAnonymously(auth).catch(err=>{ console.warn("Connexion anonyme échouée:", err); resolve(null); }); }
+      });
+    });
+    fbReady = true;
+  }
+}catch(e){ console.warn("Firebase non configuré:", e); }
+
+/* ---------- Stockage local de secours (mode démo / hors-ligne) ---------- */
+const LOCAL_KEY = "shaman_local_db_v1";
+function localDB(){
+  try{ return JSON.parse(localStorage.getItem(LOCAL_KEY)) || {candidats:[], placements:[], journal:[], actualites:[]}; }
+  catch(e){ return {candidats:[], placements:[], journal:[], actualites:[]}; }
+}
+function saveLocalDB(d){ localStorage.setItem(LOCAL_KEY, JSON.stringify(d)); }
+
+function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+
+/* ---------- Couche de données unifiée (Firestore si dispo, sinon local) ---------- */
+const DataLayer = {
+  async addCandidat(data){
+    data.creeLe = new Date().toISOString();
+    let id;
+    if(fbReady){
+      await authReadyPromise;
+      const ref = await addDoc(collection(db,"candidats"), {...data, creeLe: serverTimestamp()});
+      id = ref.id;
+    }else{
+      const d = localDB(); id = uid();
+      d.candidats.push({id, ...data});
+      saveLocalDB(d);
+    }
+    this.logJournal({type:"candidat", refId:id, label:`Fiche créée : ${data.nom||""} ${data.prenoms||""}`.trim()});
+    return id;
+  },
+  async addPlacement(data){
+    data.creeLe = new Date().toISOString();
+    let id;
+    if(fbReady){
+      await authReadyPromise;
+      const ref = await addDoc(collection(db,"placements"), {...data, creeLe: serverTimestamp()});
+      id = ref.id;
+    }else{
+      const d = localDB(); id = uid();
+      d.placements.push({id, ...data});
+      saveLocalDB(d);
+    }
+    this.logJournal({type:"placement", refId:id, label:`Placement créé : ${data.candidatNom||""} → ${data.employeur||""}`});
+    return id;
+  },
+  async updatePlacement(id, patch){
+    if(fbReady){ await authReadyPromise; await updateDoc(doc(db,"placements",id), patch); }
+    else{
+      const d = localDB();
+      const i = d.placements.findIndex(p=>p.id===id);
+      if(i>-1) d.placements[i] = {...d.placements[i], ...patch};
+      saveLocalDB(d);
+    }
+    this.logJournal({type:"placement", refId:id, label:`Placement mis à jour (${Object.keys(patch).join(", ")})`});
+  },
+  async updateCandidat(id, patch){
+    if(fbReady){ await authReadyPromise; await updateDoc(doc(db,"candidats",id), patch); }
+    else{
+      const d = localDB();
+      const i = d.candidats.findIndex(c=>c.id===id);
+      if(i>-1) d.candidats[i] = {...d.candidats[i], ...patch};
+      saveLocalDB(d);
+    }
+  },
+  async addNote(candidatId, noteObj){
+    if(fbReady){
+      await authReadyPromise;
+      await updateDoc(doc(db,"candidats",candidatId), { notes: arrayUnion(noteObj) });
+    }else{
+      const d = localDB();
+      const i = d.candidats.findIndex(c=>c.id===candidatId);
+      if(i>-1){ d.candidats[i].notes = (d.candidats[i].notes||[]).concat([noteObj]); }
+      saveLocalDB(d);
+    }
+    this.logJournal({type:"note", refId:candidatId, label:`Note ajoutée : "${(noteObj.texte||"").slice(0,60)}"`});
+  },
+  async logJournal(entry){
+    entry.ts = new Date().toISOString();
+    entry.agent = getAgentName() || (session.role==="admin" ? "Administrateur" : "Agent");
+    if(fbReady){
+      try{
+        await authReadyPromise;
+        await addDoc(collection(db,"journal"), {...entry, ts: serverTimestamp()});
+      }catch(e){ console.warn("Journal non enregistré:", e); }
+    }else{
+      const d = localDB();
+      d.journal = d.journal || [];
+      d.journal.push({id:uid(), ...entry});
+      saveLocalDB(d);
+    }
+  },
+  listenJournal(cb){
+    if(fbReady){
+      let unsub = ()=>{};
+      let stopped = false;
+      authReadyPromise.then(()=>{
+        if(stopped) return;
+        const q = query(collection(db,"journal"), orderBy("ts","desc"), limit(200));
+        unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
+      });
+      return ()=>{ stopped = true; unsub(); };
+    }else{
+      cb((localDB().journal||[]).slice().reverse());
+      return ()=>{};
+    }
+  },
+  async addActualite(data){
+    data.ts = new Date().toISOString();
+    if(fbReady){
+      await authReadyPromise;
+      await addDoc(collection(db,"actualites"), {...data, ts: serverTimestamp()});
+    }else{
+      const d = localDB();
+      d.actualites = d.actualites || [];
+      d.actualites.unshift({id:uid(), ...data});
+      saveLocalDB(d);
+    }
+    this.logJournal({type:"actualite", refId:"", label:`Actualité publiée : "${(data.titre||"").slice(0,60)}"`});
+  },
+  listenActualites(cb){
+    if(fbReady){
+      let unsub = ()=>{};
+      let stopped = false;
+      authReadyPromise.then(()=>{
+        if(stopped) return;
+        const q = query(collection(db,"actualites"), orderBy("ts","desc"), limit(30));
+        unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
+      });
+      return ()=>{ stopped = true; unsub(); };
+    }else{
+      cb(localDB().actualites || []);
+      return ()=>{};
+    }
+  },
+  listenCandidats(cb){
+    if(fbReady){
+      let unsub = ()=>{};
+      let stopped = false;
+      authReadyPromise.then(()=>{
+        if(stopped) return;
+        const q = query(collection(db,"candidats"), orderBy("creeLe","desc"));
+        unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))));
+      });
+      return ()=>{ stopped = true; unsub(); };
+    }else{
+      cb(localDB().candidats.slice().reverse());
+      return ()=>{};
+    }
+  },
+  listenPlacements(cb){
+    if(fbReady){
+      let unsub = ()=>{};
+      let stopped = false;
+      authReadyPromise.then(()=>{
+        if(stopped) return;
+        const q = query(collection(db,"placements"), orderBy("creeLe","desc"));
+        unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))));
+      });
+      return ()=>{ stopped = true; unsub(); };
+    }else{
+      cb(localDB().placements.slice().reverse());
+      return ()=>{};
+    }
+  }
+};
+
+/* ---------- Utilitaires UI ---------- */
+const $ = sel => document.querySelector(sel);
+const mainEl = $("#main");
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2600);
+}
+function setTop(title, sub, showBack){
+  $("#topTitle").textContent = title;
+  $("#topSub").textContent = sub;
+  $("#backBtn").style.display = showBack ? "inline-block" : "none";
+}
+/* =========================================================
+   MODE HORS LIGNE — durée maximale d'utilisation sans réseau
+   L'application (formulaires, enregistrements) reste utilisable
+   hors ligne ; les données sont mises en file d'attente puis
+   synchronisées automatiquement au retour du réseau. Ce délai
+   sert uniquement à prévenir l'agent/l'admin s'il reste trop
+   longtemps sans se reconnecter.
+   ========================================================= */
+const OFFLINE_MAX_DAYS = 7; // modifiable : durée max recommandée hors connexion
+const LAST_ONLINE_KEY = "shaman_last_online_ts";
+
+function markOnlineNow(){
+  localStorage.setItem(LAST_ONLINE_KEY, Date.now().toString());
+}
+function getOfflineDays(){
+  const last = parseInt(localStorage.getItem(LAST_ONLINE_KEY) || Date.now().toString(), 10);
+  return (Date.now() - last) / 86400000;
+}
+if(navigator.onLine) markOnlineNow();
+
+function updateOfflineBanner(){
+  const flag = $("#offlineFlag");
+  if(navigator.onLine){
+    markOnlineNow();
+    flag.classList.remove("show");
+    return;
+  }
+  const days = getOfflineDays();
+  const remaining = Math.max(0, OFFLINE_MAX_DAYS - days);
+  if(days >= OFFLINE_MAX_DAYS){
+    flag.textContent = "⚠️ Hors connexion depuis plus de " + OFFLINE_MAX_DAYS + " jours — vous pouvez continuer à enregistrer, mais reconnectez-vous dès que possible pour synchroniser vos fiches.";
+  }else{
+    flag.textContent = "Hors connexion — vous pouvez continuer à travailler normalement. Synchronisation automatique au retour du réseau (encore " + Math.ceil(remaining) + " j avant reconnexion recommandée).";
+  }
+  flag.classList.add("show");
+}
+window.addEventListener("online", updateOfflineBanner);
+window.addEventListener("offline", updateOfflineBanner);
+setInterval(updateOfflineBanner, 60000);
+updateOfflineBanner();
+
+/* =========================================================
+   OUTIL 1 — IDENTIFICATION DE L'AGENT (pour la traçabilité)
+   ========================================================= */
+const AGENT_NAME_KEY = "shaman_agent_name";
+function getAgentName(){ return localStorage.getItem(AGENT_NAME_KEY) || ""; }
+function setAgentName(n){ localStorage.setItem(AGENT_NAME_KEY, n); }
+
+/* ---------- Utilitaires génériques ---------- */
+function toDateSafe(v){
+  if(!v) return null;
+  if(typeof v.toDate === "function") return v.toDate();
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
+function fmtDate(v){
+  const d = toDateSafe(v);
+  return d ? d.toLocaleDateString("fr-FR") : "—";
+}
+function parseAmount(str){
+  if(!str) return 0;
+  const digits = String(str).replace(/[^\d]/g,"");
+  return digits ? parseInt(digits,10) : 0;
+}
+function daysBetween(a,b){ return Math.round((b-a)/86400000); }
+function placeBadgeClass(statut){
+  if(statut==="Actif") return "actif";
+  if(statut==="Terminé") return "termine";
+  if(statut==="En attente") return "attente";
+  if(statut==="Rejeté") return "attente";
+  return "dispo";
+}
+
+/* =========================================================
+   OUTIL 12 — MODE SOMBRE
+   ========================================================= */
+const THEME_KEY = "shaman_theme";
+function applyTheme(t){ document.documentElement.setAttribute("data-theme", t); localStorage.setItem(THEME_KEY, t); }
+applyTheme(localStorage.getItem(THEME_KEY) || "light");
+
+/* =========================================================
+   OUTIL 13 — INTERFACE BILINGUE (FR / EN)
+   Traduction de la navigation principale ; les fiches (mêmes
+   champs que les documents papier de l'agence) restent en
+   français, langue de travail des agents sur le terrain.
+   ========================================================= */
+const LANG_KEY = "shaman_lang";
+function getLang(){ return localStorage.getItem(LANG_KEY) || "fr"; }
+function setLang(l){ localStorage.setItem(LANG_KEY, l); }
+const I18N = {
+  fr:{
+    homeTitle:"Recrutement & Placement",
+    homeDesc:"Enregistrez vos candidats, suivez vos placements et pilotez votre agence depuis n'importe où dans le monde.",
+    agentCard:"Espace Agent", agentDesc:"Inscrire un(e) candidat(e) ou enregistrer un placement",
+    adminCard:"Espace Administrateur", adminDesc:"Vue d'ensemble, recherche et suivi de toute l'activité",
+    shareCard:"Ouvrir sur un autre appareil", shareDesc:"Lien direct et QR code à scanner",
+    newCand:"Nouvelle fiche candidat(e)", newCandDesc:"Fiche de traçabilité complète, avec photo",
+    newPlace:"Nouveau placement", newPlaceDesc:"Enregistrer un employeur, une tâche et un salaire",
+    consult:"Consulter les fiches", consultDesc:"Retrouver un(e) candidat(e) déjà inscrit(e)",
+    outilsCard:"Outils de gestion", outilsDesc:"Tableau de bord, journal, alertes, finances, sauvegarde…",
+    outils2Card:"Gestion internationale", outils2Desc:"Pays, devises, visas, conformité, rôles régionaux…",
+    tousCand:"Tous les candidats", tousPlace:"Tous les placements"
+  },
+  en:{
+    homeTitle:"Recruitment & Placement",
+    homeDesc:"Register your candidates, track your placements, and run your agency from anywhere in the world.",
+    agentCard:"Agent Area", agentDesc:"Register a candidate or log a placement",
+    adminCard:"Administrator Area", adminDesc:"Overview, search and tracking of all activity",
+    shareCard:"Open on another device", shareDesc:"Direct link and QR code to scan",
+    newCand:"New candidate profile", newCandDesc:"Full intake form, with photo",
+    newPlace:"New placement", newPlaceDesc:"Record an employer, a task and a salary",
+    consult:"Browse profiles", consultDesc:"Find a candidate already registered",
+    outilsCard:"Management tools", outilsDesc:"Dashboard, log, alerts, finances, backup…",
+    outils2Card:"International management", outils2Desc:"Countries, currencies, visas, compliance, regional roles…",
+    tousCand:"All candidates", tousPlace:"All placements"
+  }
+};
+function t(key){ return (I18N[getLang()] && I18N[getLang()][key]) || I18N.fr[key] || key; }
+
+/* =========================================================
+   OUTIL 14 — DEVISES (affichage indicatif)
+   ========================================================= */
+const DEVISES = ["FCFA","EUR","USD","GBP","CAD","AED","MAD"];
+function fmtMoney(amount, devise){
+  if(!amount) return "—";
+  return Number(amount).toLocaleString("fr-FR") + " " + (devise||"FCFA");
+}
+
+/* =========================================================
+   OUTIL 17 — RÔLES HIÉRARCHISÉS (superviseur régional)
+   ========================================================= */
+const SUPERVISOR_CODE = "Shaman123chooz-region";
+function isAdminish(){ return session.role==="admin" || session.role==="supervisor"; }
+
+
+/* ---------- Compression photo (canvas) ---------- */
+function compressImage(file, maxW=480, quality=0.62){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxW / img.width);
+        const w = Math.round(img.width*scale), h = Math.round(img.height*scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ---------- État de session ---------- */
+let session = { role: null }; // "agent" | "admin"
+
+/* =========================================================
+   ROUTAGE
+   ========================================================= */
+const routes = {};
+function nav(name, params={}){
+  location.hash = name + (Object.keys(params).length ? "?"+new URLSearchParams(params).toString() : "");
+}
+window.addEventListener("hashchange", render);
+window.addEventListener("DOMContentLoaded", render);
+
+function currentRoute(){
+  const raw = location.hash.replace("#","") || "home";
+  const [name, qs] = raw.split("?");
+  return { name, params: Object.fromEntries(new URLSearchParams(qs||"")) };
+}
+
+function render(){
+  const {name, params} = currentRoute();
+  if(name !== "home"){
+    $("#backBtn").onclick = ()=> history.length>1 ? history.back() : nav("home");
+  }
+  $("#topWho").textContent = session.role === "admin" ? "Espace Administrateur"
+                            : session.role === "agent" ? "Espace Agent" : "";
+  (routes[name] || routes.home)(params);
+}
+
+/* ---------------- HOME ---------------- */
+routes.home = () => {
+  session = {role:null};
+  setTop("Agence Shaman Chooz Production","Fiches & Placements", false);
+  mainEl.innerHTML = `
+    <div class="hero">
+      <div class="stampmark" id="heroAvatar"><img src="avatar.jpg" alt="Fondateur" style="width:100%;height:100%;object-fit:cover;"></div>
+      <h1>${t("homeTitle")}</h1>
+      <p>${t("homeDesc")}</p>
+    </div>
+    <div class="choice-grid">
+      <button class="choice-card" id="goAgent">
+        <div class="icon">🧾</div>
+        <div class="txt"><h3>${t("agentCard")}</h3><p>${t("agentDesc")}</p></div>
+      </button>
+      <button class="choice-card" id="goAdmin">
+        <div class="icon">🔐</div>
+        <div class="txt"><h3>${t("adminCard")}</h3><p>${t("adminDesc")}</p></div>
+      </button>
+      <button class="choice-card" id="goShare">
+        <div class="icon">📲</div>
+        <div class="txt"><h3>${t("shareCard")}</h3><p>${t("shareDesc")}</p></div>
+      </button>
+    </div>
+    ${!fbReady ? `<p class="hint" style="text-align:center;margin-top:22px;">⚠️ Mode local (démo) : configure Firebase dans index.html pour synchroniser tous les appareils. Voir README-INSTALLATION.md.</p>` : ""}
+  `;
+  $("#goAgent").onclick = ()=>{ session.role="agent"; nav("agentHome"); };
+  $("#goAdmin").onclick = ()=> nav("adminLogin");
+  $("#goShare").onclick = ()=> nav("share");
+  const heroAv = $("#heroAvatar");
+  if(heroAv) heroAv.onclick = openAvatar;
+};
+
+/* ---------------- ESPACE AGENT ---------------- */
+routes.agentHome = () => {
+  session.role = "agent";
+  setTop("Espace Agent","Enregistrer une activité", true);
+  const agentName = getAgentName();
+  mainEl.innerHTML = `
+    ${agentName ? `<p class="hint" style="text-align:center;margin:0 0 14px;">Connecté(e) en tant que <strong>${agentName}</strong> · <a href="#agentIdentity">changer</a></p>` : ""}
+    <div id="newsBox"></div>
+    <div id="myAlertBox"></div>
+    <div class="choice-grid">
+      <button class="choice-card" id="newCand">
+        <div class="icon">📇</div>
+        <div class="txt"><h3>Nouvelle fiche candidat(e)</h3><p>Fiche de traçabilité complète, avec photo</p></div>
+      </button>
+      <button class="choice-card" id="newPlacement">
+        <div class="icon">🤝</div>
+        <div class="txt"><h3>Nouveau placement</h3><p>Enregistrer un employeur, une tâche et un salaire</p></div>
+      </button>
+      <button class="choice-card" id="myPlacements">
+        <div class="icon">🕓</div>
+        <div class="txt"><h3>Mes placements</h3><p>Suivre l'état de validation de mes enregistrements</p></div>
+      </button>
+      <button class="choice-card" id="agentList">
+        <div class="icon">📋</div>
+        <div class="txt"><h3>Consulter les fiches</h3><p>Retrouver un(e) candidat(e) déjà inscrit(e)</p></div>
+      </button>
+      <button class="choice-card" id="agentShare">
+        <div class="icon">📲</div>
+        <div class="txt"><h3>Partager l'application</h3><p>Lien et QR code pour un collègue</p></div>
+      </button>
+    </div>
+  `;
+  if(!agentName){ nav("agentIdentity"); return; }
+  $("#newCand").onclick = ()=> nav("candidatForm");
+  $("#newPlacement").onclick = ()=> nav("placementForm");
+  $("#myPlacements").onclick = ()=> nav("mesPlacements");
+  $("#agentList").onclick = ()=> nav("list", {tab:"candidats"});
+  $("#agentShare").onclick = ()=> nav("share");
+
+  DataLayer.listenPlacements(list=>{
+    const mine = list.filter(p=>p.agentNom===agentName);
+    const rejetes = mine.filter(p=>p.statut==="Rejeté").length;
+    const attente = mine.filter(p=>p.statut==="En attente").length;
+    const box = $("#myAlertBox");
+    if(box){
+      box.innerHTML = (rejetes>0 || attente>0) ? `
+        <div class="panel"><div class="body" style="font-size:13.5px;">
+          ${rejetes>0?`<p style="margin:0 0 6px;">🔴 <strong>${rejetes}</strong> placement(s) rejeté(s) à corriger — <a href="#mesPlacements">voir</a></p>`:""}
+          ${attente>0?`<p style="margin:0;">🕓 <strong>${attente}</strong> placement(s) en attente de validation</p>`:""}
+        </div></div>` : "";
+    }
+  });
+  DataLayer.listenActualites(list=>{
+    const box = $("#newsBox");
+    if(!box) return;
+    const recent = list.slice(0,2);
+    box.innerHTML = recent.length ? `
+      <div class="panel"><div class="head"><h2>📰 Actualités de l'agence</h2></div>
+        <div class="body">
+          ${recent.map(n=>`<div style="margin-bottom:8px;"><strong style="font-size:13.5px;">${n.titre}</strong><p style="font-size:13px;margin:2px 0 0;color:var(--ink-2);">${n.texte}</p></div>`).join("")}
+        </div>
+      </div>` : "";
+  });
+};
+
+/* ---------------- FORMULAIRE CANDIDAT ---------------- */
+routes.candidatForm = () => {
+  setTop("Nouvelle fiche","Fiche de traçabilité", true);
+  const relations = [
+    ["pere","Père"],["mere","Mère"],["oncle","Oncle"],["tante","Tante"],
+    ["frere","Frère"],["soeur","Sœur"],["cousin","Cousin"],["cousine","Cousine"],
+    ["beaufrere","Beau-frère"],["bellesoeur","Belle-sœur"],
+    ["ami1","Ami(e) de référence 1"],["ami2","Ami(e) de référence 2"]
+  ];
+  mainEl.innerHTML = `
+    <form id="candForm">
+      <div class="panel">
+        <div class="head"><h2>Photo &amp; identité</h2><span class="num mono">FICHE</span></div>
+        <div class="body">
+          <div class="photo-box">
+            <div class="thumb" id="photoThumb">PHOTO</div>
+            <div class="actions">
+              <button type="button" class="btn-sm" id="takePhoto">📷 Prendre / choisir une photo</button>
+              <input type="file" accept="image/*" capture="environment" id="photoInput" style="display:none;">
+              <span class="hint" id="photoStatus">Aucune photo</span>
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Nom</label><input name="nom" required></div>
+            <div class="field"><label>Prénoms</label><input name="prenoms" required></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Date de naissance</label><input name="dateNaissance" type="date"></div>
+            <div class="field"><label>Âge</label><input name="age" type="number" min="14" max="80"></div>
+          </div>
+          <div class="field"><label>Lieu de naissance</label><input name="lieuNaissance"></div>
+          <div class="row2">
+            <div class="field"><label>Ethnie</label><input name="ethnie"></div>
+            <div class="field"><label>Religion</label><input name="religion"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Situation matrimoniale</label>
+              <select name="situationMatrimoniale">
+                <option value="">—</option><option>Célibataire</option><option>Marié(e)</option>
+                <option>Divorcé(e)</option><option>Veuf/Veuve</option>
+              </select>
+            </div>
+            <div class="field"><label>Nombre d'enfants</label><input name="nbEnfants" type="number" min="0"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Contact</label><input name="contact" required></div>
+            <div class="field"><label>Domicile</label><input name="domicile"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Pays</label><input name="pays" placeholder="Ex : Côte d'Ivoire" list="paysList"></div>
+            <div class="field"><label>Ville</label><input name="ville"></div>
+          </div>
+          <datalist id="paysList">
+            <option>Côte d'Ivoire</option><option>Sénégal</option><option>Mali</option><option>Burkina Faso</option>
+            <option>Guinée</option><option>Togo</option><option>Bénin</option><option>Maroc</option><option>France</option>
+            <option>Liban</option><option>Émirats arabes unis</option><option>Arabie saoudite</option>
+          </datalist>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="head"><h2>Documents de voyage (si départ à l'étranger)</h2></div>
+        <div class="body">
+          <div class="row2">
+            <div class="field"><label>N° de passeport</label><input name="passeportNum"></div>
+            <div class="field"><label>Expiration passeport</label><input type="date" name="passeportExpiration"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Type de visa</label><input name="visaType" placeholder="Ex : Travail, Séjour"></div>
+            <div class="field"><label>Expiration visa</label><input type="date" name="visaExpiration"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="head"><h2>Famille &amp; personnes de référence</h2></div>
+        <div class="body">
+          ${relations.map(([key,label])=>`
+            <fieldset class="relgroup">
+              <legend>${label}</legend>
+              <div class="field"><label>Nom</label><input name="${key}_nom"></div>
+              <div class="row2">
+                <div class="field"><label>Domicile</label><input name="${key}_domicile"></div>
+                <div class="field"><label>Contact</label><input name="${key}_contact"></div>
+              </div>
+            </fieldset>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="head"><h2>Études &amp; compétences</h2></div>
+        <div class="body">
+          <div class="field"><label>Niveau d'étude</label>
+            <select name="niveauEtude">
+              <option value="">—</option><option>Primaire</option><option>Secondaire</option><option>Supérieur</option>
+            </select>
+          </div>
+          <div class="field"><label>Langue(s) parlée(s)</label><input name="langues"></div>
+          <div class="field"><label>Domaine(s) de compétence(s)</label><input name="domaineCompetence"></div>
+          <div class="field"><label>Expériences professionnelles</label><textarea name="experiences"></textarea></div>
+          <div class="field"><label>Salaire souhaité</label><input name="salaireSouhaite"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="head"><h2>Dernier exercice (facultatif)</h2></div>
+        <div class="body">
+          <div class="field"><label>Exercice chez M/Mme/Mlle</label><input name="dernierEmployeur"></div>
+          <div class="row2">
+            <div class="field"><label>À la date du</label><input type="date" name="dernierDateDebut"></div>
+            <div class="field"><label>Fin de l'exercice le</label><input type="date" name="dernierDateFin"></div>
+          </div>
+          <div class="field"><label>Domicile de l'employeur</label><input name="dernierDomicile"></div>
+          <div class="field"><label>Travail effectué</label><input name="dernierTravail"></div>
+          <div class="field"><label>Autres personnes de référence</label><input name="autresReferences"></div>
+        </div>
+      </div>
+
+      <div id="candErr" class="err"></div>
+      <button class="btn stamp" type="submit" id="submitCand">Enregistrer la fiche</button>
+    </form>
+  `;
+
+  let photoData = null;
+  let existingCandidats = [];
+  DataLayer.listenCandidats(list=>{ existingCandidats = list; });
+  $("#takePhoto").onclick = ()=> $("#photoInput").click();
+  $("#photoInput").onchange = async (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    $("#photoStatus").textContent = "Compression…";
+    photoData = await compressImage(f);
+    $("#photoThumb").innerHTML = `<img src="${photoData}">`;
+    $("#photoStatus").textContent = "Photo ajoutée ✓";
+  };
+
+  $("#candForm").onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const data = Object.fromEntries(fd.entries());
+    /* Outil 21 — détection de doublons */
+    const dup = existingCandidats.find(c=> c.contact && data.contact && c.contact.trim()===data.contact.trim());
+    if(dup && !e.target.dataset.dupConfirmed){
+      const proceed = confirm(`⚠️ Un(e) candidat(e) avec ce même contact existe déjà : ${dup.nom||""} ${dup.prenoms||""}.\nContinuer quand même et créer une nouvelle fiche ?`);
+      if(!proceed) return;
+      e.target.dataset.dupConfirmed = "1";
+    }
+    const btn = $("#submitCand"); btn.disabled = true; btn.textContent = "Enregistrement…";
+    data.photo = photoData || null;
+    data.statut = "Disponible";
+    data.agentNom = getAgentName() || (session.role==="admin"?"Administrateur":session.role==="supervisor"?`Superviseur (${session.region})`:"Agent");
+    try{
+      const id = await DataLayer.addCandidat(data);
+      toast("Fiche enregistrée ✓");
+      nav("candidatDetail", {id});
+    }catch(err){
+      $("#candErr").textContent = "Erreur d'enregistrement : " + err.message;
+      btn.disabled = false; btn.textContent = "Enregistrer la fiche";
+    }
+  };
+};
+
+/* ---------------- FORMULAIRE PLACEMENT ---------------- */
+routes.placementForm = async (params) => {
+  const editId = params.editId || null;
+  setTop(editId ? "Corriger le placement" : "Nouveau placement","Fiche de suivi", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement des candidat(e)s…</div>`;
+  let candidats = [];
+  let places = [];
+  let existing = null;
+  DataLayer.listenCandidats(list => { candidats = list; tryBuild(); });
+  if(editId){
+    DataLayer.listenPlacements(list => { places = list; existing = list.find(p=>p.id===editId); tryBuild(); });
+  }
+  function tryBuild(){
+    if(editId && !existing) return;
+    buildForm();
+  }
+
+  function buildForm(){
+    const v = existing || {};
+    mainEl.innerHTML = `
+      <form id="placeForm">
+        ${editId ? `<div class="ok-banner" style="background:#FBE9E7;border-color:var(--stamp);color:var(--stamp);">🔴 Placement rejeté${v.rejectReason?` — Motif : ${v.rejectReason}`:""}. Corrigez puis renvoyez pour une nouvelle validation.</div>` : ""}
+        <div class="panel">
+          <div class="head"><h2>Candidat(e) placé(e)</h2><span class="num mono">SUIVI</span></div>
+          <div class="body">
+            <div class="field">
+              <label>Choisir un(e) candidat(e)</label>
+              <select name="candidatId" required>
+                <option value="">— Sélectionner —</option>
+                ${candidats.map(c=>`<option value="${c.id}" ${(v.candidatId||params.candidatId)===c.id?"selected":""}>${c.nom||""} ${c.prenoms||""} — ${c.contact||""}</option>`).join("")}
+              </select>
+            </div>
+            <p class="hint">Candidat(e) introuvable ? <a href="#candidatForm">Créer sa fiche d'abord</a>.</p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="head"><h2>Employeur &amp; tâche</h2></div>
+          <div class="body">
+            <div class="field"><label>Employeur</label><input name="employeur" required value="${v.employeur||""}"></div>
+            <div class="field"><label>Contact employeur</label><input name="employeurContact" value="${v.employeurContact||""}"></div>
+            <div class="field"><label>Tâche</label><input name="tache" placeholder="Ex : Ménagère, Nounou, Cuisinière…" required value="${v.tache||""}"></div>
+            <div class="row2">
+              <div class="field"><label>Salaire</label><input name="salaire" value="${v.salaire||""}"></div>
+              <div class="field"><label>Devise</label>
+                <select name="devise">${DEVISES.map(d=>`<option ${(v.devise||"FCFA")===d?"selected":""}>${d}</option>`).join("")}</select>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>Pays du poste</label><input name="paysEmployeur" placeholder="Ex : Liban, France…" value="${v.paysEmployeur||""}"></div>
+              <div class="field"><label>Date de début</label><input type="date" name="dateDebut" value="${v.dateDebut||""}"></div>
+            </div>
+            <div class="field"><label>Date de fin (si connue)</label><input type="date" name="dateFin" value="${v.dateFin||""}"></div>
+            <div class="row2">
+              <div class="field"><label>Commission agence (%)</label><input name="commissionPct" type="number" min="0" max="100" step="0.5" placeholder="Ex : 10" value="${v.commissionPct||""}"></div>
+              <div class="field"><label>Évaluation candidat(e)</label>
+                <select name="noteEtoiles">
+                  <option value="">—</option>
+                  <option value="5" ${v.noteEtoiles=="5"?"selected":""}>★★★★★ Excellent</option>
+                  <option value="4" ${v.noteEtoiles=="4"?"selected":""}>★★★★ Très bien</option>
+                  <option value="3" ${v.noteEtoiles=="3"?"selected":""}>★★★ Correct</option>
+                  <option value="2" ${v.noteEtoiles=="2"?"selected":""}>★★ Insuffisant</option>
+                  <option value="1" ${v.noteEtoiles=="1"?"selected":""}>★ Problématique</option>
+                </select>
+              </div>
+            </div>
+            <div class="field"><label>Appréciation</label><textarea name="appreciation">${v.appreciation||""}</textarea></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="head"><h2>Checklist de conformité</h2></div>
+          <div class="body checklist">
+            <label><input type="checkbox" name="ckContrat" ${v.ckContrat?"checked":""}> Contrat signé</label>
+            <label><input type="checkbox" name="ckAssurance" ${v.ckAssurance?"checked":""}> Assurance santé souscrite</label>
+            <label><input type="checkbox" name="ckVisa" ${v.ckVisa?"checked":""}> Visa / autorisation de travail obtenu</label>
+            <label><input type="checkbox" name="ckBillet" ${v.ckBillet?"checked":""}> Billet de voyage confirmé</label>
+          </div>
+        </div>
+        <div id="placeErr" class="err"></div>
+        ${session.role==="agent" ? `<p class="hint" style="text-align:center;margin-bottom:10px;">ℹ️ Ce placement sera transmis à l'administrateur pour validation avant d'être activé.</p>` : ""}
+        <button class="btn stamp" type="submit" id="submitPlace">${editId ? "Renvoyer pour validation" : "Enregistrer le placement"}</button>
+      </form>
+    `;
+    $("#placeForm").onsubmit = async (e)=>{
+      e.preventDefault();
+      const btn = $("#submitPlace"); btn.disabled = true; btn.textContent = "Enregistrement…";
+      const fd = new FormData(e.target);
+      const data = Object.fromEntries(fd.entries());
+      const cand = candidats.find(c=>c.id===data.candidatId);
+      data.candidatNom = cand ? `${cand.nom||""} ${cand.prenoms||""}`.trim() : "";
+      data.agentNom = getAgentName() || (session.role==="admin"?"Administrateur":session.role==="supervisor"?`Superviseur (${session.region})`:"Agent");
+      /* Outil 22 — validation administrateur obligatoire pour les placements créés par un agent */
+      if(session.role === "agent"){
+        data.statut = "En attente";
+      }else{
+        data.statut = data.dateFin ? "Terminé" : "Actif";
+      }
+      data.ckContrat = e.target.ckContrat.checked;
+      data.ckAssurance = e.target.ckAssurance.checked;
+      data.ckVisa = e.target.ckVisa.checked;
+      data.ckBillet = e.target.ckBillet.checked;
+      try{
+        if(editId){
+          data.rejectReason = null;
+          data.valideParAdmin = false;
+          await DataLayer.updatePlacement(editId, data);
+          toast("Placement corrigé et renvoyé pour validation ✓");
+          nav("mesPlacements");
+        }else{
+          await DataLayer.addPlacement(data);
+          toast(data.statut==="En attente" ? "Placement envoyé pour validation ✓" : "Placement enregistré ✓");
+          nav("agentHome");
+        }
+      }catch(err){
+        $("#placeErr").textContent = "Erreur : " + err.message;
+        btn.disabled = false; btn.textContent = editId ? "Renvoyer pour validation" : "Enregistrer le placement";
+      }
+    };
+  }
+};
+
+/* ---------------- PARTAGER / QR CODE ---------------- */
+routes.share = () => {
+  setTop("Ouvrir l'application","Lien & QR Code", true);
+  const appUrl = location.origin + location.pathname.replace(/index\.html$/,"");
+  let svg = "";
+  try{
+    const qr = qrcode(0, "M");
+    qr.addData(appUrl);
+    qr.make();
+    svg = qr.createSvgTag(6, 16);
+  }catch(e){ svg = "<p>QR indisponible</p>"; }
+
+  mainEl.innerHTML = `
+    <div class="panel">
+      <div class="head"><h2>Accéder à l'application</h2></div>
+      <div class="body" style="text-align:center;">
+        <p class="hint" style="margin-bottom:14px;">Scannez ce code avec l'appareil photo du téléphone, ou partagez le lien ci-dessous à vos assistants.</p>
+        <div style="background:#fff; display:inline-block; padding:10px; border-radius:8px; border:1px solid var(--line);">${svg}</div>
+        <div class="field" style="margin-top:18px; text-align:left;">
+          <label>Lien de l'application</label>
+          <input id="appLinkInput" value="${appUrl}" readonly>
+        </div>
+        <button class="btn stamp" id="copyLink" style="margin-top:6px;">📋 Copier le lien</button>
+        <p class="hint" style="margin-top:16px;">Une fois le lien ouvert sur un téléphone, utilisez le menu du navigateur → <strong>« Ajouter à l'écran d'accueil »</strong> pour l'installer comme une vraie application.</p>
+      </div>
+    </div>
+  `;
+  $("#copyLink").onclick = async ()=>{
+    try{
+      await navigator.clipboard.writeText(appUrl);
+      toast("Lien copié ✓");
+    }catch(e){
+      $("#appLinkInput").select();
+      toast("Sélectionnez et copiez le lien ci-dessus");
+    }
+  };
+};
+
+/* ---------------- ADMIN : CONNEXION ---------------- */
+routes.adminLogin = () => {
+  setTop("Espace Administrateur","Accès protégé", true);
+  mainEl.innerHTML = `
+    <div class="lockscreen">
+      <div class="padlock">🔐</div>
+      <h2 style="margin:0 0 4px;">Code d'accès administrateur</h2>
+      <p class="hint">Code global (fondateur) ou code superviseur régional.</p>
+      <input type="password" id="codeInput" class="codebox mono" placeholder="••••••••">
+      <div class="err" id="codeErr"></div>
+      <div style="max-width:280px;margin:18px auto 0;">
+        <button class="btn stamp" id="codeSubmit">Entrer</button>
+      </div>
+    </div>
+  `;
+  $("#codeSubmit").onclick = ()=>{
+    const val = $("#codeInput").value;
+    if(val === ADMIN_CODE){ session.role="admin"; session.region=null; nav("adminHome"); }
+    else if(val === SUPERVISOR_CODE){ session.role="supervisor"; nav("supervisorRegion"); }
+    else{ $("#codeErr").textContent = "Code incorrect."; }
+  };
+  $("#codeInput").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#codeSubmit").click(); });
+};
+
+/* ---------------- OUTIL 17bis : SÉLECTION DE LA RÉGION SUPERVISÉE ---------------- */
+routes.supervisorRegion = () => {
+  setTop("Superviseur régional","Choisir le pays", true);
+  mainEl.innerHTML = `
+    <div class="panel">
+      <div class="head"><h2>Quel pays supervisez-vous ?</h2></div>
+      <div class="body">
+        <p class="hint" style="margin-top:0;">Vous ne verrez que les candidat(e)s et placements de ce pays.</p>
+        <div class="field"><label>Pays</label><input id="regionInput" placeholder="Ex : Côte d'Ivoire"></div>
+        <button class="btn stamp" id="regionSubmit">Accéder au tableau de bord</button>
+      </div>
+    </div>
+  `;
+  $("#regionSubmit").onclick = ()=>{
+    const v = $("#regionInput").value.trim();
+    if(!v){ toast("Merci d'indiquer un pays"); return; }
+    session.region = v;
+    nav("adminHome");
+  };
+};
+
+/* ---------------- ADMIN : ACCUEIL / DASHBOARD ---------------- */
+routes.adminHome = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop(session.role==="supervisor" ? `Superviseur — ${session.region}` : "Espace Administrateur","Vue d'ensemble", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+
+  let cands=[], places=[];
+  DataLayer.listenCandidats(list=>{ cands= session.region ? list.filter(c=>c.pays===session.region) : list; draw(); });
+  DataLayer.listenPlacements(list=>{ places= session.region ? list.filter(p=> cands.some(c=>c.id===p.candidatId)) : list; draw(); });
+
+  function draw(){
+    const actifs = places.filter(p=>p.statut==="Actif").length;
+    const termines = places.filter(p=>p.statut==="Terminé").length;
+    const now = new Date();
+    const nonPlaces = cands.filter(c=>{
+      if(c.statut!=="Disponible") return false;
+      const has = places.some(p=>p.candidatId===c.id && p.statut==="Actif");
+      if(has) return false;
+      const d = toDateSafe(c.creeLe);
+      return d && daysBetween(d, now) >= 30;
+    }).length;
+    const finProches = places.filter(p=>{
+      if(p.statut!=="Actif" || !p.dateFin) return false;
+      const d = toDateSafe(p.dateFin);
+      if(!d) return false;
+      const diff = daysBetween(now, d);
+      return diff >= 0 && diff <= 7;
+    }).length;
+    const commissionTotal = places.reduce((sum,p)=>{
+      if(!p.commissionPct) return sum;
+      return sum + Math.round(parseAmount(p.salaire) * (parseFloat(p.commissionPct)||0) / 100);
+    }, 0);
+    const enAttente = places.filter(p=>p.statut==="En attente").length;
+
+    mainEl.innerHTML = `
+      <div class="statgrid">
+        <div class="statcard"><div class="n">${cands.length}</div><div class="l">Candidats</div></div>
+        <div class="statcard"><div class="n">${actifs}</div><div class="l">Placements actifs</div></div>
+        <div class="statcard"><div class="n">${termines}</div><div class="l">Terminés</div></div>
+      </div>
+      ${enAttente>0 ? `
+      <div class="panel">
+        <div class="head"><h2>🕓 Placements à valider</h2><span class="num mono">${enAttente}</span></div>
+        <div class="body">
+          <p style="font-size:13.5px;margin:0 0 10px;">${enAttente} placement(s) enregistré(s) par vos assistants attendent votre validation avant d'être activés.</p>
+          <button class="btn stamp" id="seeValidation">Examiner et valider</button>
+        </div>
+      </div>` : ""}
+      ${(nonPlaces>0 || finProches>0) ? `
+      <div class="panel">
+        <div class="head"><h2>⏰ Alertes</h2><span class="num mono">${nonPlaces+finProches}</span></div>
+        <div class="body">
+          ${nonPlaces>0?`<p style="font-size:13.5px;margin:0 0 8px;">🟠 <strong>${nonPlaces}</strong> candidat(e)s disponibles depuis plus de 30 jours sans placement.</p>`:""}
+          ${finProches>0?`<p style="font-size:13.5px;margin:0;">🔴 <strong>${finProches}</strong> placement(s) se terminent dans les 7 prochains jours.</p>`:""}
+          <button class="btn ghost" id="seeAlerts" style="margin-top:10px;">Voir le détail</button>
+        </div>
+      </div>` : ""}
+      <div class="choice-grid">
+        <button class="choice-card" id="toCands">
+          <div class="icon">📇</div>
+          <div class="txt"><h3>Tous les candidats</h3><p>Rechercher, consulter et gérer les fiches</p></div>
+        </button>
+        <button class="choice-card" id="toPlace">
+          <div class="icon">🤝</div>
+          <div class="txt"><h3>Tous les placements</h3><p>Suivre l'état de chaque placement${commissionTotal>0?` · Commissions : ${commissionTotal.toLocaleString("fr-FR")}`:""}</p></div>
+        </button>
+        <button class="choice-card" id="toOutils">
+          <div class="icon">🛠️</div>
+          <div class="txt"><h3>${t("outilsCard")}</h3><p>${t("outilsDesc")}</p></div>
+        </button>
+        <button class="choice-card" id="toOutils2">
+          <div class="icon">🌍</div>
+          <div class="txt"><h3>${t("outils2Card")}</h3><p>${t("outils2Desc")}</p></div>
+        </button>
+        <button class="choice-card" id="toValidation">
+          <div class="icon">🕓</div>
+          <div class="txt"><h3>Validation des placements</h3><p>Examiner ce que vos assistants ont enregistré</p></div>
+        </button>
+        <button class="choice-card" id="toActualites">
+          <div class="icon">📰</div>
+          <div class="txt"><h3>Actualités de l'agence</h3><p>Publier une information pour tous les agents</p></div>
+        </button>
+        <button class="choice-card" id="toPerformance">
+          <div class="icon">🏆</div>
+          <div class="txt"><h3>Performance par agent</h3><p>Fiches et placements réalisés par chacun</p></div>
+        </button>
+        <button class="choice-card" id="toShareAdmin">
+          <div class="icon">📲</div>
+          <div class="txt"><h3>Partager l'application</h3><p>Lien et QR code à donner aux assistants</p></div>
+        </button>
+      </div>
+    `;
+    $("#toCands").onclick = ()=> nav("list",{tab:"candidats"});
+    $("#toPlace").onclick = ()=> nav("list",{tab:"placements"});
+    $("#toOutils").onclick = ()=> nav("outils");
+    $("#toOutils2").onclick = ()=> nav("outils2");
+    $("#toValidation").onclick = ()=> nav("validation");
+    $("#toActualites").onclick = ()=> nav("actualites");
+    $("#toPerformance").onclick = ()=> nav("performance");
+    $("#toShareAdmin").onclick = ()=> nav("share");
+    const seeAlerts = $("#seeAlerts");
+    if(seeAlerts) seeAlerts.onclick = ()=> nav("alertes");
+    const seeVal = $("#seeValidation");
+    if(seeVal) seeVal.onclick = ()=> nav("validation");
+  }
+};
+
+/* ---------------- OUTIL 22 — VALIDATION DES PLACEMENTS PAR L'ADMINISTRATEUR ---------------- */
+/* ---------------- OUTIL 23 — MES PLACEMENTS (suivi agent) ---------------- */
+/* ---------------- OUTIL 25 — PERFORMANCE PAR AGENT ---------------- */
+routes.performance = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Performance par agent","Vue d'ensemble par personne", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  let cands=[], places=[];
+  DataLayer.listenCandidats(list=>{ cands= session.region ? list.filter(c=>c.pays===session.region) : list; draw(); });
+  DataLayer.listenPlacements(list=>{ places= session.region ? list.filter(p=> cands.some(c=>c.id===p.candidatId)) : list; draw(); });
+
+  function draw(){
+    const agents = new Set([...cands.map(c=>c.agentNom), ...places.map(p=>p.agentNom)].filter(Boolean));
+    const rows = [...agents].map(a=>{
+      const nbFiches = cands.filter(c=>c.agentNom===a).length;
+      const mine = places.filter(p=>p.agentNom===a);
+      const valides = mine.filter(p=>p.statut==="Actif"||p.statut==="Terminé").length;
+      const rejetes = mine.filter(p=>p.statut==="Rejeté").length;
+      return {a, nbFiches, nbPlacements:mine.length, valides, rejetes};
+    }).sort((x,y)=> (y.nbFiches+y.nbPlacements) - (x.nbFiches+x.nbPlacements));
+
+    mainEl.innerHTML = rows.length ? `
+      <div class="panel"><div class="body">
+        ${rows.map(r=>`
+          <div class="rowitem" style="cursor:default; align-items:flex-start;">
+            <div class="av">👤</div>
+            <div class="info">
+              <div class="n1">${r.a}</div>
+              <div class="n2">${r.nbFiches} fiche(s) candidat(e) · ${r.nbPlacements} placement(s) (${r.valides} validé(s)${r.rejetes?`, ${r.rejetes} rejeté(s)`:""})</div>
+            </div>
+          </div>
+        `).join("")}
+      </div></div>
+    ` : `<div class="center-msg">Aucune donnée d'activité pour l'instant.</div>`;
+  }
+};
+
+routes.mesPlacements = () => {
+  const agentName = getAgentName();
+  setTop("Mes placements","Suivi de mes enregistrements", true);
+  if(!agentName){ nav("agentIdentity"); return; }
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  DataLayer.listenPlacements(list=>{
+    const mine = list.filter(p=>p.agentNom===agentName);
+    mainEl.innerHTML = mine.length ? mine.map(p=>`
+      <div class="rowitem" data-id="${p.id}" style="align-items:flex-start;">
+        <div class="av">🤝</div>
+        <div class="info">
+          <div class="n1">${p.candidatNom||"—"} → ${p.employeur||""}</div>
+          <div class="n2">${p.tache||""} · ${fmtMoney(p.salaire,p.devise)} · ${fmtDate(p.creeLe)}</div>
+          ${p.statut==="Rejeté" && p.rejectReason ? `<div class="n2" style="color:var(--stamp);margin-top:3px;">Motif : ${p.rejectReason}</div>`:""}
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+          <span class="badge ${placeBadgeClass(p.statut)}">${p.statut}</span>
+          ${p.statut==="Rejeté" ? `<button class="btn-sm" data-fix="${p.id}">Corriger</button>` : ""}
+        </div>
+      </div>
+    `).join("") : `<div class="center-msg">Vous n'avez pas encore enregistré de placement.</div>`;
+    mainEl.querySelectorAll("[data-fix]").forEach(btn=>{
+      btn.onclick = (e)=>{ e.stopPropagation(); nav("placementForm",{editId:btn.dataset.fix}); };
+    });
+    mainEl.querySelectorAll(".rowitem").forEach(el=> el.onclick = ()=> nav("placementDetail",{id:el.dataset.id}));
+  });
+};
+
+/* ---------------- OUTIL 24 — ACTUALITÉS DE L'AGENCE ---------------- */
+routes.actualites = () => {
+  setTop("Actualités","Communication de l'agence", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  DataLayer.listenActualites(list=>{
+    mainEl.innerHTML = `
+      ${isAdminish() ? `
+      <div class="panel">
+        <div class="head"><h2>Publier une actualité</h2></div>
+        <div class="body">
+          <div class="field"><label>Titre</label><input id="newsTitre" placeholder="Ex : Nouveau partenaire à Abidjan"></div>
+          <div class="field"><label>Message</label><textarea id="newsTexte"></textarea></div>
+          <button class="btn stamp" id="publishNews">Publier</button>
+        </div>
+      </div>` : ""}
+      <div class="panel"><div class="body">
+        ${list.length ? list.map(n=>`
+          <div style="border-bottom:1px solid var(--line); padding:10px 0;">
+            <strong style="font-size:14.5px;">${n.titre||""}</strong>
+            <p style="font-size:13.5px;margin:4px 0 0;">${n.texte||""}</p>
+            <div class="hint" style="margin-top:4px;">${n.agent||"Administration"} · ${fmtDate(n.ts)}</div>
+          </div>
+        `).join("") : `<p class="hint" style="margin:0;">Aucune actualité publiée pour l'instant.</p>`}
+      </div></div>
+    `;
+    const pub = $("#publishNews");
+    if(pub) pub.onclick = async ()=>{
+      const titre = $("#newsTitre").value.trim();
+      const texte = $("#newsTexte").value.trim();
+      if(!titre){ toast("Merci de saisir un titre"); return; }
+      await DataLayer.addActualite({titre, texte, agent:getAgentName()||"Administration"});
+      toast("Actualité publiée ✓");
+      nav("actualites");
+    };
+  });
+};
+
+routes.validation = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Validation des placements","À examiner avant activation", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  let cands=[];
+  DataLayer.listenCandidats(list=>{ cands = session.region ? list.filter(c=>c.pays===session.region) : list; });
+  DataLayer.listenPlacements(list=>{
+    let pending = list.filter(p=>p.statut==="En attente");
+    if(session.region) pending = pending.filter(p=> cands.some(c=>c.id===p.candidatId));
+    draw(pending);
+  });
+
+  function draw(pending){
+    mainEl.innerHTML = pending.length ? pending.map(p=>{
+      const cand = cands.find(c=>c.id===p.candidatId);
+      return `
+      <div class="panel" data-pid="${p.id}">
+        <div class="head"><h2>${p.candidatNom||"Candidat(e)"} → ${p.employeur}</h2><span class="badge attente">En attente</span></div>
+        <div class="body">
+          <div class="section-title">Enregistré par</div>
+          <p style="font-size:13.5px;margin:0 0 10px;">🧑‍💼 <strong>${p.agentNom||"Agent inconnu"}</strong> · ${fmtDate(p.creeLe)}</p>
+
+          <div class="section-title">Informations sur l'employé(e)</div>
+          <div class="detail-grid">
+            <div><div class="k">Nom complet</div><div class="v">${p.candidatNom||"—"}</div></div>
+            <div><div class="k">Contact</div><div class="v">${cand ? (cand.contact||"—") : "—"}</div></div>
+            <div><div class="k">Domicile</div><div class="v">${cand ? (cand.domicile||"—") : "—"}</div></div>
+            <div><div class="k">Domaine</div><div class="v">${cand ? (cand.domaineCompetence||"—") : "—"}</div></div>
+          </div>
+
+          <div class="section-title">Informations sur l'employeur</div>
+          <div class="detail-grid">
+            <div><div class="k">Employeur</div><div class="v">${p.employeur||"—"}</div></div>
+            <div><div class="k">Contact employeur</div><div class="v">${p.employeurContact||"—"}</div></div>
+            <div><div class="k">Pays du poste</div><div class="v">${p.paysEmployeur||"—"}</div></div>
+            <div><div class="k">Tâche</div><div class="v">${p.tache||"—"}</div></div>
+            <div><div class="k">Salaire proposé</div><div class="v">${fmtMoney(p.salaire,p.devise)}</div></div>
+            <div><div class="k">Date de début</div><div class="v">${p.dateDebut||"—"}</div></div>
+          </div>
+          ${p.appreciation?`<div class="section-title">Note de l'agent</div><p style="font-size:13.5px;">${p.appreciation}</p>`:""}
+
+          <div style="display:flex; gap:10px; margin-top:14px;">
+            <button class="btn stamp" data-action="valider" style="flex:1;">✅ Valider</button>
+            <button class="btn ghost" data-action="rejeter" style="flex:1;">✖️ Rejeter</button>
+          </div>
+        </div>
+      </div>`;
+    }).join("") : `<div class="center-msg">Aucun placement en attente de validation. 👍</div>`;
+
+    mainEl.querySelectorAll("[data-action]").forEach(btn=>{
+      btn.onclick = async ()=>{
+        const panel = btn.closest("[data-pid]");
+        const pid = panel.dataset.pid;
+        const p = pending.find(x=>x.id===pid);
+        if(btn.dataset.action === "valider"){
+          await DataLayer.updatePlacement(pid, {statut: p.dateFin ? "Terminé" : "Actif", valideParAdmin:true, valideLe:new Date().toISOString()});
+          toast("Placement validé et activé ✓");
+        }else{
+          const reason = prompt("Motif du rejet (visible par l'agent) :", "");
+          if(reason === null) return;
+          await DataLayer.updatePlacement(pid, {statut:"Rejeté", rejeteLe:new Date().toISOString(), rejectReason: reason || "Non précisé"});
+          toast("Placement rejeté");
+        }
+      };
+    });
+  }
+};
+
+/* ---------------- OUTILS DE GESTION (hub des 11 outils) ---------------- */
+routes.outils = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Outils de gestion","11 outils pour piloter l'agence", true);
+  const tools = [
+    ["👤","Identification de l'agent","Nom enregistré pour la traçabilité des actions","agentIdentity"],
+    ["📜","Journal d'activité","Historique horodaté de toutes les actions","journal"],
+    ["📈","Tableau de bord graphique","Évolution des inscriptions et placements","dashboard"],
+    ["🟠","Candidats non placés","Disponibles depuis plus de 30 jours","alertes"],
+    ["🔴","Rappels de fin de contrat","Placements arrivant à échéance","alertes"],
+    ["🔎","Recherche avancée","Filtrer par domaine, niveau, statut","list"],
+    ["🗒️","Notes internes","Ouvrez une fiche candidat pour ajouter des notes","list"],
+    ["💰","Suivi financier","Commissions de l'agence sur les placements","finance"],
+    ["⭐","Évaluation des candidats","Note et appréciation après placement","list"],
+    ["🧾","Reçu de placement","Document imprimable depuis une fiche de suivi","list"],
+    ["💾","Sauvegarde complète","Export de toutes les données (JSON + CSV)","backup"]
+  ];
+  mainEl.innerHTML = `
+    <div class="choice-grid">
+      ${tools.map(([icon,title,desc,route],i)=>`
+        <button class="choice-card" data-route="${route}" data-i="${i}">
+          <div class="icon">${icon}</div>
+          <div class="txt"><h3>${title}</h3><p>${desc}</p></div>
+        </button>
+      `).join("")}
+    </div>
+  `;
+  mainEl.querySelectorAll(".choice-card").forEach(el=>{
+    el.onclick = ()=>{
+      const r = el.dataset.route;
+      if(r === "list"){
+        const i = parseInt(el.dataset.i,10);
+        nav("list", {tab: i===9 ? "placements" : (i===8 ? "placements" : "candidats")});
+      } else nav(r);
+    };
+  });
+};
+
+/* ---------------- OUTIL : IDENTIFICATION DE L'AGENT ---------------- */
+routes.agentIdentity = () => {
+  setTop("Identification","Traçabilité des actions", true);
+  const current = getAgentName();
+  mainEl.innerHTML = `
+    <div class="panel">
+      <div class="head"><h2>Votre nom</h2></div>
+      <div class="body">
+        <p class="hint" style="margin-top:0;">Ce nom sera associé à chaque fiche et placement que vous enregistrez, pour que l'administrateur sache qui a fait quoi.</p>
+        <div class="field"><label>Nom et prénoms</label><input id="agentNameInput" value="${current}" placeholder="Ex : Aya Koffi"></div>
+        <button class="btn stamp" id="saveAgentName">Enregistrer</button>
+      </div>
+    </div>
+  `;
+  $("#saveAgentName").onclick = ()=>{
+    const v = $("#agentNameInput").value.trim();
+    if(!v){ toast("Merci de saisir un nom"); return; }
+    setAgentName(v);
+    toast("Nom enregistré ✓");
+    history.length>1 ? history.back() : nav(session.role==="admin"?"adminHome":"agentHome");
+  };
+};
+
+/* ---------------- OUTIL : JOURNAL D'ACTIVITÉ ---------------- */
+routes.journal = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Journal d'activité","Historique complet", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  DataLayer.listenJournal(entries=>{
+    mainEl.innerHTML = entries.length ? `
+      <div class="panel"><div class="body">
+        ${entries.map(e=>`
+          <div class="rowitem" style="cursor:default;">
+            <div class="av">📝</div>
+            <div class="info">
+              <div class="n1">${e.label||""}</div>
+              <div class="n2">${e.agent||"—"} · ${fmtDate(e.ts)}</div>
+            </div>
+          </div>
+        `).join("")}
+      </div></div>
+    ` : `<div class="center-msg">Aucune activité enregistrée pour l'instant.</div>`;
+  });
+};
+
+/* ---------------- OUTIL : TABLEAU DE BORD GRAPHIQUE ---------------- */
+routes.dashboard = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Tableau de bord","Évolution de l'activité", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  let cands=[], places=[];
+  DataLayer.listenCandidats(list=>{ cands=list; draw(); });
+  DataLayer.listenPlacements(list=>{ places=list; draw(); });
+
+  function monthBuckets(list, field){
+    const buckets = {};
+    const now = new Date();
+    for(let i=5;i>=0;i--){
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      buckets[d.getFullYear()+"-"+d.getMonth()] = 0;
+    }
+    list.forEach(item=>{
+      const d = toDateSafe(item[field]);
+      if(!d) return;
+      const key = d.getFullYear()+"-"+d.getMonth();
+      if(key in buckets) buckets[key] += 1;
+    });
+    return buckets;
+  }
+  const moisNoms = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"];
+  function drawBars(buckets, color){
+    const vals = Object.entries(buckets);
+    const max = Math.max(1, ...vals.map(v=>v[1]));
+    return `<div style="display:flex; align-items:flex-end; gap:8px; height:110px; padding:8px 0;">
+      ${vals.map(([key,val])=>{
+        const m = parseInt(key.split("-")[1],10);
+        const h = Math.round((val/max)*90) + 6;
+        return `<div style="flex:1; text-align:center;">
+          <div style="height:${h}px; background:${color}; border-radius:3px 3px 0 0; margin:0 auto; width:60%;"></div>
+          <div style="font-size:10px; color:var(--ink-2); margin-top:4px;">${moisNoms[m]}</div>
+          <div style="font-size:11px; font-weight:600;">${val}</div>
+        </div>`;
+      }).join("")}
+    </div>`;
+  }
+
+  function draw(){
+    mainEl.innerHTML = `
+      <div class="panel">
+        <div class="head"><h2>Nouvelles fiches candidats / mois</h2></div>
+        <div class="body">${drawBars(monthBuckets(cands,"creeLe"), "var(--stamp)")}</div>
+      </div>
+      <div class="panel">
+        <div class="head"><h2>Nouveaux placements / mois</h2></div>
+        <div class="body">${drawBars(monthBuckets(places,"creeLe"), "var(--green)")}</div>
+      </div>
+    `;
+  }
+};
+
+/* ---------------- OUTIL : ALERTES (non placés + fins de contrat) ---------------- */
+routes.alertes = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Alertes","Suivi proactif", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  let cands=[], places=[];
+  DataLayer.listenCandidats(list=>{ cands=list; draw(); });
+  DataLayer.listenPlacements(list=>{ places=list; draw(); });
+
+  function draw(){
+    const now = new Date();
+    const nonPlaces = cands.filter(c=>{
+      if(c.statut!=="Disponible") return false;
+      const has = places.some(p=>p.candidatId===c.id && p.statut==="Actif");
+      if(has) return false;
+      const d = toDateSafe(c.creeLe);
+      return d && daysBetween(d, now) >= 30;
+    });
+    const finProches = places.filter(p=>{
+      if(p.statut!=="Actif" || !p.dateFin) return false;
+      const d = toDateSafe(p.dateFin);
+      if(!d) return false;
+      const diff = daysBetween(now, d);
+      return diff >= 0 && diff <= 7;
+    });
+    mainEl.innerHTML = `
+      <div class="panel">
+        <div class="head"><h2>🟠 Candidats disponibles depuis +30 jours</h2><span class="num mono">${nonPlaces.length}</span></div>
+        <div class="body">
+          ${nonPlaces.length ? nonPlaces.map(c=>`
+            <div class="rowitem" data-id="${c.id}">
+              <div class="av">${c.photo?`<img src="${c.photo}">`:(c.nom?c.nom[0]:"?")}</div>
+              <div class="info"><div class="n1">${c.nom||""} ${c.prenoms||""}</div><div class="n2">Inscrit(e) le ${fmtDate(c.creeLe)}</div></div>
+            </div>`).join("") : `<p class="hint">Aucun candidat en attente prolongée.</p>`}
+        </div>
+      </div>
+      <div class="panel">
+        <div class="head"><h2>🔴 Placements se terminant sous 7 jours</h2><span class="num mono">${finProches.length}</span></div>
+        <div class="body">
+          ${finProches.length ? finProches.map(p=>`
+            <div class="rowitem" data-pid="${p.id}">
+              <div class="av">🤝</div>
+              <div class="info"><div class="n1">${p.candidatNom||""} → ${p.employeur||""}</div><div class="n2">Fin prévue le ${fmtDate(p.dateFin)}</div></div>
+            </div>`).join("") : `<p class="hint">Aucune échéance imminente.</p>`}
+        </div>
+      </div>
+    `;
+    mainEl.querySelectorAll("[data-id]").forEach(el=> el.onclick = ()=> nav("candidatDetail",{id:el.dataset.id}));
+    mainEl.querySelectorAll("[data-pid]").forEach(el=> el.onclick = ()=> nav("placementDetail",{id:el.dataset.pid}));
+  }
+};
+
+/* ---------------- OUTIL : SUIVI FINANCIER ---------------- */
+routes.finance = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Suivi financier","Commissions de l'agence", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  DataLayer.listenPlacements(places=>{
+    const withCommission = places.filter(p=>p.commissionPct);
+    const totalActif = withCommission.filter(p=>p.statut==="Actif")
+      .reduce((s,p)=> s + Math.round(parseAmount(p.salaire)*(parseFloat(p.commissionPct)||0)/100), 0);
+    const totalTermine = withCommission.filter(p=>p.statut==="Terminé")
+      .reduce((s,p)=> s + Math.round(parseAmount(p.salaire)*(parseFloat(p.commissionPct)||0)/100), 0);
+    mainEl.innerHTML = `
+      <div class="statgrid">
+        <div class="statcard"><div class="n">${(totalActif+totalTermine).toLocaleString("fr-FR")}</div><div class="l">Total commissions</div></div>
+        <div class="statcard"><div class="n">${totalActif.toLocaleString("fr-FR")}</div><div class="l">Placements actifs</div></div>
+        <div class="statcard"><div class="n">${totalTermine.toLocaleString("fr-FR")}</div><div class="l">Terminés</div></div>
+      </div>
+      <div class="panel"><div class="body">
+        ${withCommission.length ? withCommission.map(p=>{
+          const c = Math.round(parseAmount(p.salaire)*(parseFloat(p.commissionPct)||0)/100);
+          return `<div class="rowitem" data-pid="${p.id}">
+            <div class="av">💰</div>
+            <div class="info"><div class="n1">${p.candidatNom||""} → ${p.employeur||""}</div><div class="n2">Salaire ${p.salaire||"—"} · ${p.commissionPct}% = ${c.toLocaleString("fr-FR")}</div></div>
+            <span class="badge ${placeBadgeClass(p.statut)}">${p.statut}</span>
+          </div>`;
+        }).join("") : `<p class="hint">Aucune commission renseignée. Ajoutez un pourcentage de commission lors de la création d'un placement.</p>`}
+      </div></div>
+    `;
+    mainEl.querySelectorAll("[data-pid]").forEach(el=> el.onclick = ()=> nav("placementDetail",{id:el.dataset.pid}));
+  });
+};
+
+/* ---------------- OUTIL : SAUVEGARDE COMPLÈTE ---------------- */
+routes.backup = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Sauvegarde","Export complet des données", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  let cands=[], places=[];
+  DataLayer.listenCandidats(list=>{ cands=list; draw(); });
+  DataLayer.listenPlacements(list=>{ places=list; draw(); });
+  function draw(){
+    mainEl.innerHTML = `
+      <div class="panel">
+        <div class="head"><h2>Exporter toutes les données</h2></div>
+        <div class="body">
+          <p class="hint" style="margin-top:0;">${cands.length} candidat(e)s · ${places.length} placement(s). Conservez régulièrement une copie de sécurité.</p>
+          <button class="btn stamp" id="exportJson" style="margin-bottom:10px;">💾 Télécharger la sauvegarde (JSON)</button>
+          <button class="btn ghost" id="exportCsv2">📊 Télécharger en CSV (Excel)</button>
+        </div>
+      </div>
+    `;
+    $("#exportJson").onclick = ()=>{
+      const blob = new Blob([JSON.stringify({exporteLe:new Date().toISOString(), candidats:cands, placements:places}, null, 2)], {type:"application/json"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "shaman_bara_center_sauvegarde_"+new Date().toISOString().slice(0,10)+".json";
+      a.click();
+    };
+    $("#exportCsv2").onclick = ()=> exportCSV(cands, places);
+  }
+};
+
+function exportCSV(cands, places){
+  function toCSV(rows){
+    if(!rows.length) return "";
+    const keys = Object.keys(rows[0]).filter(k=>k!=="photo");
+    const lines = [keys.join(";")];
+    rows.forEach(r=> lines.push(keys.map(k=> `"${(r[k]??"").toString().replace(/"/g,'""')}"`).join(";")));
+    return lines.join("\n");
+  }
+  const blob = new Blob(["CANDIDATS\n"+toCSV(cands)+"\n\nPLACEMENTS\n"+toCSV(places)], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "shaman_bara_center_export.csv";
+  a.click();
+}
+
+/* ---------------- LISTE (agent limité + admin complet) ---------------- */
+routes.list = (params) => {
+  const tab = params.tab || "candidats";
+  const backHome = session.role === "admin" ? "adminHome" : "agentHome";
+  setTop(session.role==="admin" ? "Espace Administrateur" : "Espace Agent", "Toutes les fiches", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+
+  let cands=[], places=[];
+  DataLayer.listenCandidats(list=>{ cands= session.region ? list.filter(c=>c.pays===session.region) : list; draw(); });
+  DataLayer.listenPlacements(list=>{ places= session.region ? list.filter(p=> cands.some(c=>c.id===p.candidatId)) : list; draw(); });
+
+  function draw(){
+    const niveaux = [...new Set(cands.map(c=>c.niveauEtude).filter(Boolean))];
+    mainEl.innerHTML = `
+      <div class="tabs">
+        <button class="${tab==='candidats'?'on':''}" id="tabC">Candidats (${cands.length})</button>
+        <button class="${tab==='placements'?'on':''}" id="tabP">Placements (${places.length})</button>
+      </div>
+      <div class="searchbar"><input id="q" placeholder="Rechercher un nom, un contact…"></div>
+      ${tab==="candidats" ? `
+      <div class="row2" style="margin-bottom:14px;">
+        <div class="field" style="margin-bottom:0;"><label>Niveau d'étude</label>
+          <select id="fNiveau"><option value="">Tous</option>${niveaux.map(n=>`<option value="${n}">${n}</option>`).join("")}</select>
+        </div>
+        <div class="field" style="margin-bottom:0;"><label>Statut</label>
+          <select id="fStatut"><option value="">Tous</option><option>Disponible</option><option>Placé(e)</option></select>
+        </div>
+      </div>` : `
+      <div class="field" style="margin-bottom:14px;"><label>Statut</label>
+        <select id="fStatutP"><option value="">Tous</option><option>Actif</option><option>Terminé</option></select>
+      </div>`}
+      <div id="listBody"></div>
+    `;
+    $("#tabC").onclick = ()=> nav("list",{tab:"candidats"});
+    $("#tabP").onclick = ()=> nav("list",{tab:"placements"});
+    const body = $("#listBody");
+    function renderList(){
+      const s = ($("#q").value||"").trim().toLowerCase();
+      if(tab === "candidats"){
+        const fNiveau = $("#fNiveau") ? $("#fNiveau").value : "";
+        const fStatut = $("#fStatut") ? $("#fStatut").value : "";
+        let rows = cands.filter(c=>!s || `${c.nom} ${c.prenoms} ${c.contact} ${c.domaineCompetence||""}`.toLowerCase().includes(s));
+        if(fNiveau) rows = rows.filter(c=>c.niveauEtude===fNiveau);
+        if(fStatut === "Placé(e)") rows = rows.filter(c=> places.some(p=>p.candidatId===c.id && p.statut==="Actif"));
+        if(fStatut === "Disponible") rows = rows.filter(c=> !places.some(p=>p.candidatId===c.id && p.statut==="Actif"));
+        body.innerHTML = rows.length ? rows.map(c=>`
+          <div class="rowitem" data-id="${c.id}">
+            <div class="av">${c.photo?`<img src="${c.photo}">`:(c.nom?c.nom[0]:"?")}</div>
+            <div class="info">
+              <div class="n1">${c.nom||""} ${c.prenoms||""}</div>
+              <div class="n2">${c.contact||"—"} · ${c.domaineCompetence||"Domaine non précisé"}</div>
+            </div>
+            <span class="badge dispo">${c.statut||"Disponible"}</span>
+          </div>`).join("") : `<div class="center-msg">Aucune fiche ne correspond.</div>`;
+        body.querySelectorAll(".rowitem").forEach(el=> el.onclick = ()=> nav("candidatDetail",{id:el.dataset.id}));
+      }else{
+        const fStatutP = $("#fStatutP") ? $("#fStatutP").value : "";
+        let rows = places.filter(p=>!s || `${p.candidatNom} ${p.employeur}`.toLowerCase().includes(s));
+        if(fStatutP) rows = rows.filter(p=>p.statut===fStatutP);
+        body.innerHTML = rows.length ? rows.map(p=>`
+          <div class="rowitem" data-id="${p.id}">
+            <div class="av">🤝</div>
+            <div class="info">
+              <div class="n1">${p.candidatNom||"—"} → ${p.employeur||""}</div>
+              <div class="n2">${p.tache||""} · ${p.salaire||""}</div>
+            </div>
+            <span class="badge ${placeBadgeClass(p.statut)}">${p.statut||""}</span>
+          </div>`).join("") : `<div class="center-msg">Aucun placement ne correspond.</div>`;
+        body.querySelectorAll(".rowitem").forEach(el=> el.onclick = ()=> nav("placementDetail",{id:el.dataset.id}));
+      }
+    }
+    renderList();
+    $("#q").oninput = renderList;
+    const fN = $("#fNiveau"), fS = $("#fStatut"), fSP = $("#fStatutP");
+    if(fN) fN.onchange = renderList;
+    if(fS) fS.onchange = renderList;
+    if(fSP) fSP.onchange = renderList;
+  }
+};
+
+/* ---------------- DÉTAIL CANDIDAT ---------------- */
+routes.candidatDetail = async (params) => {
+  setTop("Fiche candidat(e)","Détail", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  let cand=null, places=[];
+  DataLayer.listenCandidats(list=>{ cand = list.find(c=>c.id===params.id); draw(); });
+  DataLayer.listenPlacements(list=>{ places = list.filter(p=>p.candidatId===params.id); draw(); });
+
+  function draw(){
+    if(!cand) return;
+    const relLabels = {pere:"Père",mere:"Mère",oncle:"Oncle",tante:"Tante",frere:"Frère",soeur:"Sœur",
+      cousin:"Cousin",cousine:"Cousine",beaufrere:"Beau-frère",bellesoeur:"Belle-sœur",
+      ami1:"Ami(e) réf. 1",ami2:"Ami(e) réf. 2"};
+    mainEl.innerHTML = `
+      <div class="panel">
+        <div class="head"><h2>${cand.nom||""} ${cand.prenoms||""}</h2></div>
+        <div class="body">
+          <div class="photo-box">
+            <div class="thumb">${cand.photo?`<img src="${cand.photo}">`:"PHOTO"}</div>
+            <div class="detail-grid" style="flex:1;">
+              <div><div class="k">Contact</div><div class="v">${cand.contact||"—"}</div></div>
+              <div><div class="k">Âge</div><div class="v">${cand.age||"—"}</div></div>
+              <div><div class="k">Domicile</div><div class="v">${cand.domicile||"—"}</div></div>
+              <div><div class="k">Situation</div><div class="v">${cand.situationMatrimoniale||"—"}</div></div>
+            </div>
+          </div>
+          <div class="section-title">Études &amp; compétences</div>
+          <div class="detail-grid">
+            <div><div class="k">Niveau</div><div class="v">${cand.niveauEtude||"—"}</div></div>
+            <div><div class="k">Langues</div><div class="v">${cand.langues||"—"}</div></div>
+            <div><div class="k">Domaine</div><div class="v">${cand.domaineCompetence||"—"}</div></div>
+            <div><div class="k">Salaire souhaité</div><div class="v">${cand.salaireSouhaite||"—"}</div></div>
+          </div>
+          ${cand.experiences?`<div class="section-title">Expériences</div><p style="font-size:13.5px;">${cand.experiences}</p>`:""}
+          <div class="section-title">Famille &amp; références</div>
+          <div class="detail-grid">
+            ${Object.entries(relLabels).filter(([k])=>cand[k+"_nom"]).map(([k,label])=>`
+              <div><div class="k">${label}</div><div class="v">${cand[k+"_nom"]||""} — ${cand[k+"_contact"]||""}</div></div>
+            `).join("") || `<div class="hint">Aucune référence renseignée.</div>`}
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="head"><h2>Historique de placement</h2></div>
+        <div class="body">
+          ${places.length ? places.map(p=>`
+            <div class="rowitem" style="cursor:default;">
+              <div class="av">🤝</div>
+              <div class="info"><div class="n1">${p.employeur}</div><div class="n2">${p.tache} · ${p.salaire||""}</div></div>
+              <span class="badge ${placeBadgeClass(p.statut)}">${p.statut}</span>
+            </div>`).join("") : `<p class="hint">Aucun placement enregistré pour ce/cette candidat(e).</p>`}
+          <button class="btn ghost" id="newPlaceFor" style="margin-top:8px;">+ Nouveau placement pour ce/cette candidat(e)</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="head"><h2>Notes internes</h2></div>
+        <div class="body">
+          ${(cand.notes&&cand.notes.length) ? cand.notes.slice().reverse().map(n=>`
+            <div style="border-bottom:1px solid var(--line); padding:8px 0; font-size:13.5px;">
+              <div>${(n.texte||"").replace(/</g,"&lt;")}</div>
+              <div class="hint" style="margin-top:3px;">${n.agent||"—"} · ${fmtDate(n.ts)}</div>
+            </div>
+          `).join("") : `<p class="hint" style="margin-top:0;">Aucune note pour l'instant.</p>`}
+          <div class="field" style="margin-top:12px;"><textarea id="newNoteInput" placeholder="Ajouter une note de suivi…"></textarea></div>
+          <button class="btn ghost" id="addNoteBtn">+ Ajouter la note</button>
+        </div>
+      </div>
+    `;
+    $("#newPlaceFor").onclick = ()=> nav("placementForm",{candidatId:cand.id});
+    $("#addNoteBtn").onclick = async ()=>{
+      const txt = $("#newNoteInput").value.trim();
+      if(!txt) return;
+      await DataLayer.addNote(cand.id, {texte:txt, agent:getAgentName()||(session.role==="admin"?"Administrateur":"Agent"), ts:new Date().toISOString()});
+      toast("Note ajoutée ✓");
+    };
+  }
+};
+
+/* ---------------- DÉTAIL PLACEMENT ---------------- */
+routes.placementDetail = async (params) => {
+  setTop("Fiche de suivi","Placement", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  DataLayer.listenPlacements(list=>{
+    const p = list.find(x=>x.id===params.id);
+    if(!p){ mainEl.innerHTML = `<div class="center-msg">Introuvable.</div>`; return; }
+    const etoiles = p.noteEtoiles ? "★".repeat(+p.noteEtoiles) + "☆".repeat(5-(+p.noteEtoiles)) : null;
+    const commission = p.commissionPct ? Math.round(parseAmount(p.salaire)*(parseFloat(p.commissionPct)||0)/100) : null;
+    const checks = [["ckContrat","Contrat signé"],["ckAssurance","Assurance santé"],["ckVisa","Visa/autorisation"],["ckBillet","Billet de voyage"]];
+    const doneCount = checks.filter(([k])=>p[k]).length;
+    const pct = Math.round(doneCount/checks.length*100);
+    mainEl.innerHTML = `
+      <div class="panel" id="receiptArea">
+        <div class="head"><h2>${p.employeur}</h2><span class="badge ${placeBadgeClass(p.statut)}">${p.statut}</span></div>
+        <div class="body">
+          <div class="detail-grid">
+            <div><div class="k">Candidat(e)</div><div class="v">${p.candidatNom||"—"}</div></div>
+            <div><div class="k">Contact employeur</div><div class="v">${p.employeurContact||"—"}</div></div>
+            <div><div class="k">Tâche</div><div class="v">${p.tache||"—"}</div></div>
+            <div><div class="k">Salaire</div><div class="v">${fmtMoney(p.salaire,p.devise)}</div></div>
+            <div><div class="k">Pays du poste</div><div class="v">${p.paysEmployeur||"—"}</div></div>
+            <div><div class="k">Date de début</div><div class="v">${p.dateDebut||"—"}</div></div>
+            <div><div class="k">Date de fin</div><div class="v">${p.dateFin||"En cours"}</div></div>
+            ${etoiles?`<div><div class="k">Évaluation</div><div class="v">${etoiles}</div></div>`:""}
+            ${commission!==null?`<div><div class="k">Commission agence</div><div class="v">${p.commissionPct}% = ${fmtMoney(commission,p.devise)}</div></div>`:""}
+          </div>
+          <div class="section-title">Conformité (${doneCount}/4)</div>
+          <div class="progressbar"><div class="fill" style="width:${pct}%;"></div></div>
+          <div class="checklist" style="font-size:13px;">
+            ${checks.map(([k,label])=>`<div>${p[k]?"✅":"⬜️"} ${label}</div>`).join("")}
+          </div>
+          ${p.appreciation?`<div class="section-title">Appréciation</div><p style="font-size:13.5px;">${p.appreciation}</p>`:""}
+          <div class="section-title">Agence</div>
+          <p style="font-size:12.5px;color:var(--ink-2);">AGENCE SHAMAN CHOOZ PRODUCTION — Fiche de suivi de placement</p>
+          ${p.statut==="Actif" && isAdminish() ? `<button class="btn gold" id="closeIt" style="margin-top:14px;">Marquer comme terminé</button>`:""}
+          <button class="btn ghost" id="printReceipt" style="margin-top:10px;">🧾 Imprimer / enregistrer en PDF</button>
+        </div>
+      </div>
+    `;
+    const closeBtn = $("#closeIt");
+    if(closeBtn) closeBtn.onclick = async ()=>{
+      await DataLayer.updatePlacement(p.id, {statut:"Terminé", dateFin: new Date().toISOString().slice(0,10)});
+      toast("Placement clôturé ✓");
+    };
+    $("#printReceipt").onclick = ()=> window.print();
+  });
+};
+
+/* ---- Photo de profil : plein écran au clic, retour en un clic ---- */
+const avatarBtn = $("#avatarBtn");
+const avatarOverlay = $("#avatarOverlay");
+function openAvatar(){ avatarOverlay.classList.add("show"); }
+function closeAvatar(){ avatarOverlay.classList.remove("show"); }
+avatarBtn.addEventListener("click", openAvatar);
+avatarOverlay.addEventListener("click", closeAvatar);
+
+/* ---- Boutons thème / langue (globaux, dans l'en-tête) ---- */
+$("#themeToggle").addEventListener("click", ()=>{
+  applyTheme(document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark");
+});
+$("#langToggle").textContent = getLang().toUpperCase();
+$("#langToggle").addEventListener("click", ()=>{
+  setLang(getLang()==="fr" ? "en" : "fr");
+  $("#langToggle").textContent = getLang().toUpperCase();
+  render();
+});
+
+/* ---- Service worker ---- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>

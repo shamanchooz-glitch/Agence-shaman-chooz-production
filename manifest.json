@@ -1,0 +1,16 @@
+{
+  "name": "AGENCE SHAMAN CHOOZ PRODUCTION — Fiches & Placements",
+  "short_name": "Shaman Chooz",
+  "description": "Application de recrutement et de suivi des placements — AGENCE SHAMAN CHOOZ PRODUCTION",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F1ECDF",
+  "theme_color": "#23324A",
+  "lang": "fr",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
