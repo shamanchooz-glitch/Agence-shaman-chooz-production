@@ -324,13 +324,1632 @@ footer.foot{
   padding:5px; display:none;
 }
 .offline-flag.show{display:block;}
+.contact-actions{display:inline-flex; gap:6px; margin-left:6px; vertical-align:middle;}
+.contact-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:26px;height:26px;border-radius:50%; background:var(--paper-2);
+  text-decoration:none; font-size:13px; border:1px solid var(--line);
+}
+.print-btn{
+  background:none;border:1px solid #ffffff30;color:var(--paper);
+  border-radius:50%;width:34px;height:34px;font-size:15px;cursor:pointer;flex:none;
+  display:flex;align-items:center;justify-content:center;
+}
 @media print{
-  header.topbar, .tabs, .searchbar, .fab, .toast, .offline-flag, .btn{display:none !important;}
-  #receiptArea{border:none !important; box-shadow:none !important;}
+  header.topbar, .tabs, .searchbar, .fab, .toast, .offline-flag, .btn, .btn-sm,
+  .contact-actions, .lang-toggle, .theme-toggle, .print-btn, .back{display:none !important;}
   body{background:#fff;}
+  .panel{border:none !important; box-shadow:none !important; break-inside:avoid;}
+  @page{ size: landscape; margin: 12mm; }
 }
 </style>
-<script src="qrcode.js"></script>
+<script>
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = new Array();
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw new Error('code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')');
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw new Error(row + ',' + col);
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg';
+      qrSvg += ' width="' + size + 'px"';
+      qrSvg += ' height="' + size + 'px"';
+      qrSvg += ' xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += '>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createImgTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createImgTag(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytes = function(s) {
+    var bytes = new Array();
+    for (var i = 0; i < s.length; i += 1) {
+      var c = s.charCodeAt(i);
+      bytes.push(c & 0xff);
+    }
+    return bytes;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw new Error();
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw new Error(count + ' != ' + numChars);
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = new Array();
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw new Error('bad maskPattern:' + maskPattern);
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw new Error('mode:' + mode);
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw new Error('mode:' + mode);
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw new Error('mode:' + mode);
+        }
+
+      } else {
+        throw new Error('type:' + type);
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw new Error('glog(' + n + ')');
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw new Error(num.length + '/' + shift);
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw new Error('bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel);
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = new Array();
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = new Array();
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    !function(c, code) {
+      // self test for sjis support.
+      var test = qrcode.stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+</script>
 </head>
 <body>
 
@@ -348,6 +1967,7 @@ footer.foot{
     <div class="who" id="topWho"></div>
     <button class="lang-toggle" id="langToggle">FR</button>
     <button class="theme-toggle" id="themeToggle">🌓</button>
+    <button class="print-btn" id="printBtn" title="Imprimer cette page">🖨️</button>
     <button class="back" id="backBtn" style="display:none;">← Retour</button>
   </header>
   <main id="main"></main>
@@ -362,7 +1982,7 @@ footer.foot{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, updateDoc, doc, getDocs, getDoc,
+  getFirestore, collection, addDoc, updateDoc, doc, getDocs, getDoc, deleteDoc,
   query, orderBy, onSnapshot, serverTimestamp, enableIndexedDbPersistence,
   arrayUnion, limit
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -480,6 +2100,88 @@ const DataLayer = {
       saveLocalDB(d);
     }
     this.logJournal({type:"note", refId:candidatId, label:`Note ajoutée : "${(noteObj.texte||"").slice(0,60)}"`});
+  },
+  /* ---------- OUTIL 26 : Comptes agents (code d'accès + blocage) ---------- */
+  async addAgentAccount(nom, code, tel){
+    const data = {nom, code, tel: tel||"", actif:true, creeLe:new Date().toISOString()};
+    if(fbReady){
+      await authReadyPromise;
+      const ref = await addDoc(collection(db,"agents"), {...data, creeLe:serverTimestamp()});
+      return ref.id;
+    }else{
+      const d = localDB(); const id = uid();
+      d.agents = d.agents || [];
+      d.agents.push({id, ...data});
+      saveLocalDB(d); return id;
+    }
+  },
+  async updateAgentAccount(id, patch){
+    if(fbReady){ await authReadyPromise; await updateDoc(doc(db,"agents",id), patch); }
+    else{
+      const d = localDB(); d.agents = d.agents || [];
+      const i = d.agents.findIndex(a=>a.id===id);
+      if(i>-1) d.agents[i] = {...d.agents[i], ...patch};
+      saveLocalDB(d);
+    }
+  },
+  async deleteAgentAccount(id){
+    if(fbReady){ await authReadyPromise; await deleteDoc(doc(db,"agents",id)); }
+    else{
+      const d = localDB(); d.agents = (d.agents||[]).filter(a=>a.id!==id);
+      saveLocalDB(d);
+    }
+  },
+  listenAgentAccounts(cb){
+    if(fbReady){
+      let unsub = ()=>{};
+      let stopped = false;
+      authReadyPromise.then(()=>{
+        if(stopped) return;
+        const q = query(collection(db,"agents"), orderBy("creeLe","desc"));
+        unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
+      });
+      return ()=>{ stopped = true; unsub(); };
+    }else{
+      cb(localDB().agents || []);
+      return ()=>{};
+    }
+  },
+  /* ---------- Fichiers/photos supplémentaires d'un candidat (sous-collection) ---------- */
+  async addFichier(candidatId, obj){
+    obj.ts = new Date().toISOString();
+    if(fbReady){
+      await authReadyPromise;
+      await addDoc(collection(db,"candidats",candidatId,"fichiers"), {...obj, ts: serverTimestamp()});
+    }else{
+      const d = localDB();
+      d.fichiers = d.fichiers || {};
+      d.fichiers[candidatId] = d.fichiers[candidatId] || [];
+      d.fichiers[candidatId].push({id:uid(), ...obj});
+      saveLocalDB(d);
+    }
+  },
+  listenFichiers(candidatId, cb){
+    if(fbReady){
+      let unsub = ()=>{};
+      let stopped = false;
+      authReadyPromise.then(()=>{
+        if(stopped) return;
+        const q = query(collection(db,"candidats",candidatId,"fichiers"), orderBy("ts","asc"));
+        unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
+      });
+      return ()=>{ stopped = true; unsub(); };
+    }else{
+      cb(((localDB().fichiers||{})[candidatId]) || []);
+      return ()=>{};
+    }
+  },
+  async deleteFichier(candidatId, fichierId){
+    if(fbReady){ await authReadyPromise; await deleteDoc(doc(db,"candidats",candidatId,"fichiers",fichierId)); }
+    else{
+      const d = localDB();
+      if(d.fichiers && d.fichiers[candidatId]) d.fichiers[candidatId] = d.fichiers[candidatId].filter(f=>f.id!==fichierId);
+      saveLocalDB(d);
+    }
   },
   async logJournal(entry){
     entry.ts = new Date().toISOString();
@@ -630,6 +2332,10 @@ updateOfflineBanner();
 const AGENT_NAME_KEY = "shaman_agent_name";
 function getAgentName(){ return localStorage.getItem(AGENT_NAME_KEY) || ""; }
 function setAgentName(n){ localStorage.setItem(AGENT_NAME_KEY, n); }
+const AGENT_CODE_KEY = "shaman_agent_code";
+function getAgentCode(){ return localStorage.getItem(AGENT_CODE_KEY) || ""; }
+function setAgentCode(c){ localStorage.setItem(AGENT_CODE_KEY, c); }
+function logoutAgent(){ localStorage.removeItem(AGENT_NAME_KEY); localStorage.removeItem(AGENT_CODE_KEY); }
 
 /* ---------- Utilitaires génériques ---------- */
 function toDateSafe(v){
@@ -648,6 +2354,49 @@ function parseAmount(str){
   return digits ? parseInt(digits,10) : 0;
 }
 function daysBetween(a,b){ return Math.round((b-a)/86400000); }
+
+/* =========================================================
+   OUTIL — GÉOLOCALISATION (avec consentement du navigateur)
+   ========================================================= */
+function captureGeo(){
+  return new Promise((resolve)=>{
+    if(!("geolocation" in navigator)){ resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({lat:pos.coords.latitude, lng:pos.coords.longitude}),
+      err => resolve(null),
+      {timeout:8000, enableHighAccuracy:true}
+    );
+  });
+}
+function mapsLink(lat,lng){ return `https://www.google.com/maps?q=${lat},${lng}`; }
+function geoBadgeHTML(lat,lng,label){
+  if(lat==null || lng==null) return "";
+  return `<a href="${mapsLink(lat,lng)}" target="_blank" class="btn-sm" style="text-decoration:none;display:inline-block;margin-top:4px;">📍 ${label||"Voir sur Google Maps"}</a>`;
+}
+
+/* =========================================================
+   OUTIL — CONTACTS CLIQUABLES (Appel / WhatsApp / SMS)
+   ========================================================= */
+function normalizePhone(raw){
+  if(!raw) return null;
+  let d = String(raw).replace(/[^\d+]/g,"");
+  if(!d) return null;
+  if(d.startsWith("+")) return d;
+  if(d.startsWith("00")) return "+"+d.slice(2);
+  if(/^0\d{9}$/.test(d)) return "+225"+d.slice(1); // format local Côte d'Ivoire
+  if(/^\d{8,15}$/.test(d)) return "+"+d;
+  return null;
+}
+function contactActionsHTML(raw){
+  const n = normalizePhone(raw);
+  if(!n) return "";
+  const wa = n.replace("+","");
+  return `<span class="contact-actions">
+    <a href="tel:${n}" class="contact-btn" title="Appeler">📞</a>
+    <a href="https://wa.me/${wa}" target="_blank" class="contact-btn" title="WhatsApp (appel, vidéo, SMS)">💬</a>
+    <a href="sms:${n}" class="contact-btn" title="SMS">✉️</a>
+  </span>`;
+}
 function placeBadgeClass(statut){
   if(statut==="Actif") return "actif";
   if(statut==="Terminé") return "termine";
@@ -664,14 +2413,19 @@ function applyTheme(t){ document.documentElement.setAttribute("data-theme", t); 
 applyTheme(localStorage.getItem(THEME_KEY) || "light");
 
 /* =========================================================
-   OUTIL 13 — INTERFACE BILINGUE (FR / EN)
+   OUTIL 13 — INTERFACE MULTILINGUE
    Traduction de la navigation principale ; les fiches (mêmes
-   champs que les documents papier de l'agence) restent en
-   français, langue de travail des agents sur le terrain.
+   champs que les documents papier de l'agence) restent dans
+   la langue de saisie de l'agent — voir l'outil de traduction
+   des fiches pour les lire dans une autre langue.
    ========================================================= */
 const LANG_KEY = "shaman_lang";
 function getLang(){ return localStorage.getItem(LANG_KEY) || "fr"; }
 function setLang(l){ localStorage.setItem(LANG_KEY, l); }
+const LANG_NAMES = {
+  fr:"Français", en:"English", ar:"العربية", es:"Español", pt:"Português",
+  sw:"Kiswahili", zh:"中文", hi:"हिन्दी", de:"Deutsch", ru:"Русский", it:"Italiano"
+};
 const I18N = {
   fr:{
     homeTitle:"Recrutement & Placement",
@@ -698,6 +2452,123 @@ const I18N = {
     outilsCard:"Management tools", outilsDesc:"Dashboard, log, alerts, finances, backup…",
     outils2Card:"International management", outils2Desc:"Countries, currencies, visas, compliance, regional roles…",
     tousCand:"All candidates", tousPlace:"All placements"
+  },
+  ar:{
+    homeTitle:"التوظيف والإلحاق",
+    homeDesc:"سجّل مرشحيك، تابع عمليات الإلحاق، وأدر وكالتك من أي مكان في العالم.",
+    agentCard:"مساحة الوكيل", agentDesc:"تسجيل مرشح أو تسجيل عملية إلحاق",
+    adminCard:"مساحة المدير", adminDesc:"نظرة عامة، بحث ومتابعة لكل النشاط",
+    shareCard:"فتح على جهاز آخر", shareDesc:"رابط مباشر ورمز QR للمسح",
+    newCand:"ملف مرشح جديد", newCandDesc:"استمارة تسجيل كاملة مع صورة",
+    newPlace:"إلحاق جديد", newPlaceDesc:"تسجيل صاحب عمل ومهمة وراتب",
+    consult:"تصفح الملفات", consultDesc:"البحث عن مرشح مسجل سابقًا",
+    outilsCard:"أدوات الإدارة", outilsDesc:"لوحة القيادة، السجل، التنبيهات، المالية، النسخ الاحتياطي…",
+    outils2Card:"الإدارة الدولية", outils2Desc:"الدول، العملات، التأشيرات، الامتثال، الأدوار الإقليمية…",
+    tousCand:"جميع المرشحين", tousPlace:"جميع عمليات الإلحاق"
+  },
+  es:{
+    homeTitle:"Reclutamiento y Colocación",
+    homeDesc:"Registre a sus candidatos, siga sus colocaciones y dirija su agencia desde cualquier parte del mundo.",
+    agentCard:"Área del Agente", agentDesc:"Registrar un candidato o una colocación",
+    adminCard:"Área del Administrador", adminDesc:"Resumen, búsqueda y seguimiento de toda la actividad",
+    shareCard:"Abrir en otro dispositivo", shareDesc:"Enlace directo y código QR para escanear",
+    newCand:"Nueva ficha de candidato", newCandDesc:"Formulario completo, con foto",
+    newPlace:"Nueva colocación", newPlaceDesc:"Registrar un empleador, una tarea y un salario",
+    consult:"Ver fichas", consultDesc:"Buscar un candidato ya registrado",
+    outilsCard:"Herramientas de gestión", outilsDesc:"Panel, registro, alertas, finanzas, copia de seguridad…",
+    outils2Card:"Gestión internacional", outils2Desc:"Países, monedas, visados, cumplimiento, roles regionales…",
+    tousCand:"Todos los candidatos", tousPlace:"Todas las colocaciones"
+  },
+  pt:{
+    homeTitle:"Recrutamento e Colocação",
+    homeDesc:"Registe os seus candidatos, acompanhe as colocações e gira a sua agência de qualquer lugar do mundo.",
+    agentCard:"Área do Agente", agentDesc:"Registar um candidato ou uma colocação",
+    adminCard:"Área do Administrador", adminDesc:"Visão geral, pesquisa e acompanhamento de toda a atividade",
+    shareCard:"Abrir noutro dispositivo", shareDesc:"Link direto e código QR para digitalizar",
+    newCand:"Nova ficha de candidato", newCandDesc:"Formulário completo, com foto",
+    newPlace:"Nova colocação", newPlaceDesc:"Registar um empregador, uma tarefa e um salário",
+    consult:"Consultar fichas", consultDesc:"Encontrar um candidato já registado",
+    outilsCard:"Ferramentas de gestão", outilsDesc:"Painel, registo, alertas, finanças, backup…",
+    outils2Card:"Gestão internacional", outils2Desc:"Países, moedas, vistos, conformidade, funções regionais…",
+    tousCand:"Todos os candidatos", tousPlace:"Todas as colocações"
+  },
+  sw:{
+    homeTitle:"Uajiri na Uwekaji Kazi",
+    homeDesc:"Sajili wagombea wako, fuatilia uwekaji kazi, na endesha wakala wako kutoka popote duniani.",
+    agentCard:"Eneo la Wakala", agentDesc:"Sajili mgombea au rekodi uwekaji kazi",
+    adminCard:"Eneo la Msimamizi", adminDesc:"Muhtasari, utafutaji na ufuatiliaji wa shughuli zote",
+    shareCard:"Fungua kwenye kifaa kingine", shareDesc:"Kiungo cha moja kwa moja na msimbo wa QR",
+    newCand:"Fomu mpya ya mgombea", newCandDesc:"Fomu kamili, na picha",
+    newPlace:"Uwekaji kazi mpya", newPlaceDesc:"Rekodi mwajiri, kazi na mshahara",
+    consult:"Angalia fomu", consultDesc:"Tafuta mgombea aliyesajiliwa tayari",
+    outilsCard:"Zana za usimamizi", outilsDesc:"Dashibodi, kumbukumbu, tahadhari, fedha, nakala rudufu…",
+    outils2Card:"Usimamizi wa kimataifa", outils2Desc:"Nchi, sarafu, visa, uzingatiaji, majukumu ya kikanda…",
+    tousCand:"Wagombea wote", tousPlace:"Uwekaji kazi wote"
+  },
+  zh:{
+    homeTitle:"招聘与安置",
+    homeDesc:"登记您的候选人，跟踪安置情况，随时随地管理您的机构。",
+    agentCard:"代理空间", agentDesc:"登记候选人或记录安置",
+    adminCard:"管理员空间", adminDesc:"总览、搜索和跟踪所有活动",
+    shareCard:"在其他设备上打开", shareDesc:"直接链接和可扫描二维码",
+    newCand:"新建候选人档案", newCandDesc:"完整登记表，含照片",
+    newPlace:"新安置", newPlaceDesc:"登记雇主、任务和薪资",
+    consult:"查看档案", consultDesc:"查找已登记的候选人",
+    outilsCard:"管理工具", outilsDesc:"仪表盘、日志、提醒、财务、备份…",
+    outils2Card:"国际化管理", outils2Desc:"国家、货币、签证、合规、区域角色…",
+    tousCand:"所有候选人", tousPlace:"所有安置"
+  },
+  hi:{
+    homeTitle:"भर्ती और नियुक्ति",
+    homeDesc:"अपने उम्मीदवारों को पंजीकृत करें, नियुक्तियों को ट्रैक करें, और दुनिया में कहीं से भी अपनी एजेंसी चलाएँ।",
+    agentCard:"एजेंट क्षेत्र", agentDesc:"उम्मीदवार पंजीकृत करें या नियुक्ति दर्ज करें",
+    adminCard:"प्रशासक क्षेत्र", adminDesc:"सभी गतिविधियों का अवलोकन, खोज और ट्रैकिंग",
+    shareCard:"किसी अन्य डिवाइस पर खोलें", shareDesc:"सीधा लिंक और स्कैन करने योग्य क्यूआर कोड",
+    newCand:"नई उम्मीदवार फाइल", newCandDesc:"फोटो के साथ पूर्ण फॉर्म",
+    newPlace:"नई नियुक्ति", newPlaceDesc:"नियोक्ता, कार्य और वेतन दर्ज करें",
+    consult:"फाइलें देखें", consultDesc:"पहले से पंजीकृत उम्मीदवार खोजें",
+    outilsCard:"प्रबंधन उपकरण", outilsDesc:"डैशबोर्ड, लॉग, अलर्ट, वित्त, बैकअप…",
+    outils2Card:"अंतरराष्ट्रीय प्रबंधन", outils2Desc:"देश, मुद्राएँ, वीज़ा, अनुपालन, क्षेत्रीय भूमिकाएँ…",
+    tousCand:"सभी उम्मीदवार", tousPlace:"सभी नियुक्तियाँ"
+  },
+  de:{
+    homeTitle:"Rekrutierung & Vermittlung",
+    homeDesc:"Registrieren Sie Ihre Kandidaten, verfolgen Sie Vermittlungen und leiten Sie Ihre Agentur von überall auf der Welt.",
+    agentCard:"Mitarbeiterbereich", agentDesc:"Kandidat registrieren oder Vermittlung erfassen",
+    adminCard:"Administratorbereich", adminDesc:"Übersicht, Suche und Verfolgung aller Aktivitäten",
+    shareCard:"Auf einem anderen Gerät öffnen", shareDesc:"Direktlink und scanbarer QR-Code",
+    newCand:"Neue Kandidatenakte", newCandDesc:"Vollständiges Formular mit Foto",
+    newPlace:"Neue Vermittlung", newPlaceDesc:"Arbeitgeber, Aufgabe und Gehalt erfassen",
+    consult:"Akten einsehen", consultDesc:"Bereits registrierten Kandidaten finden",
+    outilsCard:"Verwaltungswerkzeuge", outilsDesc:"Dashboard, Protokoll, Warnungen, Finanzen, Sicherung…",
+    outils2Card:"Internationales Management", outils2Desc:"Länder, Währungen, Visa, Compliance, regionale Rollen…",
+    tousCand:"Alle Kandidaten", tousPlace:"Alle Vermittlungen"
+  },
+  ru:{
+    homeTitle:"Подбор и трудоустройство",
+    homeDesc:"Регистрируйте кандидатов, отслеживайте трудоустройства и управляйте агентством из любой точки мира.",
+    agentCard:"Кабинет агента", agentDesc:"Зарегистрировать кандидата или трудоустройство",
+    adminCard:"Кабинет администратора", adminDesc:"Обзор, поиск и отслеживание всей деятельности",
+    shareCard:"Открыть на другом устройстве", shareDesc:"Прямая ссылка и QR-код для сканирования",
+    newCand:"Новая анкета кандидата", newCandDesc:"Полная анкета с фото",
+    newPlace:"Новое трудоустройство", newPlaceDesc:"Указать работодателя, задачу и зарплату",
+    consult:"Просмотреть анкеты", consultDesc:"Найти уже зарегистрированного кандидата",
+    outilsCard:"Инструменты управления", outilsDesc:"Панель, журнал, оповещения, финансы, резервная копия…",
+    outils2Card:"Международное управление", outils2Desc:"Страны, валюты, визы, соответствие, региональные роли…",
+    tousCand:"Все кандидаты", tousPlace:"Все трудоустройства"
+  },
+  it:{
+    homeTitle:"Reclutamento e Collocamento",
+    homeDesc:"Registra i tuoi candidati, monitora i collocamenti e gestisci la tua agenzia da qualsiasi parte del mondo.",
+    agentCard:"Area Agente", agentDesc:"Registra un candidato o un collocamento",
+    adminCard:"Area Amministratore", adminDesc:"Panoramica, ricerca e monitoraggio di tutte le attività",
+    shareCard:"Apri su un altro dispositivo", shareDesc:"Link diretto e codice QR da scansionare",
+    newCand:"Nuova scheda candidato", newCandDesc:"Modulo completo, con foto",
+    newPlace:"Nuovo collocamento", newPlaceDesc:"Registra un datore di lavoro, un compito e uno stipendio",
+    consult:"Consulta le schede", consultDesc:"Trova un candidato già registrato",
+    outilsCard:"Strumenti di gestione", outilsDesc:"Dashboard, registro, avvisi, finanze, backup…",
+    outils2Card:"Gestione internazionale", outils2Desc:"Paesi, valute, visti, conformità, ruoli regionali…",
+    tousCand:"Tutti i candidati", tousPlace:"Tutti i collocamenti"
   }
 };
 function t(key){ return (I18N[getLang()] && I18N[getLang()][key]) || I18N.fr[key] || key; }
@@ -766,6 +2637,7 @@ function render(){
   }
   $("#topWho").textContent = session.role === "admin" ? "Espace Administrateur"
                             : session.role === "agent" ? "Espace Agent" : "";
+  $("#langToggle").textContent = getLang().toUpperCase();
   (routes[name] || routes.home)(params);
 }
 
@@ -841,6 +2713,16 @@ routes.agentHome = () => {
   $("#agentList").onclick = ()=> nav("list", {tab:"candidats"});
   $("#agentShare").onclick = ()=> nav("share");
 
+  /* Vérifie en direct que le compte n'a pas été bloqué par l'administrateur */
+  DataLayer.listenAgentAccounts(accounts=>{
+    const me = accounts.find(a=>a.nom.trim().toLowerCase()===agentName.toLowerCase());
+    if(me && !me.actif){
+      logoutAgent();
+      alert("🚫 Votre compte a été bloqué par l'administrateur. Contactez-le pour plus d'informations.");
+      nav("home");
+    }
+  });
+
   DataLayer.listenPlacements(list=>{
     const mine = list.filter(p=>p.agentNom===agentName);
     const rejetes = mine.filter(p=>p.statut==="Rejeté").length;
@@ -884,10 +2766,57 @@ routes.candidatForm = () => {
           <div class="photo-box">
             <div class="thumb" id="photoThumb">PHOTO</div>
             <div class="actions">
-              <button type="button" class="btn-sm" id="takePhoto">📷 Prendre / choisir une photo</button>
-              <input type="file" accept="image/*" capture="environment" id="photoInput" style="display:none;">
+              <span class="hint" style="font-weight:600;margin-bottom:-4px;">Photo d'identité</span>
+              <button type="button" class="btn-sm" id="takePhotoCam">📷 Prendre une photo</button>
+              <button type="button" class="btn-sm" id="takePhotoGal">🖼️ Choisir dans la galerie</button>
+              <input type="file" accept="image/*" capture="environment" id="photoInputCam" style="display:none;">
+              <input type="file" accept="image/*" id="photoInputGal" style="display:none;">
               <span class="hint" id="photoStatus">Aucune photo</span>
             </div>
+          </div>
+          <div class="photo-box">
+            <div class="thumb" id="photoFullThumb" style="width:78px;height:96px;">PHOTO<br>ENTIÈRE</div>
+            <div class="actions">
+              <span class="hint" style="font-weight:600;margin-bottom:-4px;">Photo entière (optionnelle)</span>
+              <button type="button" class="btn-sm" id="takeFullCam">📷 Prendre une photo</button>
+              <button type="button" class="btn-sm" id="takeFullGal">🖼️ Choisir dans la galerie</button>
+              <input type="file" accept="image/*" capture="environment" id="photoFullInputCam" style="display:none;">
+              <input type="file" accept="image/*" id="photoFullInputGal" style="display:none;">
+              <span class="hint" id="photoFullStatus">Aucune photo</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Galerie de photos supplémentaires (optionnel, jusqu'à 10)</label>
+            <div id="galerieGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-sm" id="galerieCam">📷 Prendre une photo</button>
+              <button type="button" class="btn-sm" id="galerieGal">🖼️ Choisir dans la galerie (plusieurs)</button>
+            </div>
+            <input type="file" accept="image/*" capture="environment" id="galerieCamInput" style="display:none;">
+            <input type="file" accept="image/*" multiple id="galerieGalInput" style="display:none;">
+            <span class="hint" id="galerieStatus">0 / 10 photo(s) ajoutée(s)</span>
+          </div>
+          <div class="field">
+            <label>Photos du passeport (optionnel, jusqu'à 10 — pour couvrir toutes les pages utiles)</label>
+            <div id="passeportGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-sm" id="passeportCam">📷 Prendre une photo</button>
+              <button type="button" class="btn-sm" id="passeportGal">🖼️ Choisir dans la galerie (plusieurs)</button>
+            </div>
+            <input type="file" accept="image/*" capture="environment" id="passeportCamInput" style="display:none;">
+            <input type="file" accept="image/*" multiple id="passeportGalInput" style="display:none;">
+            <span class="hint" id="passeportStatus">0 / 10 photo(s) ajoutée(s)</span>
+          </div>
+          <div class="field">
+            <label>Documents (pièce d'identité, extrait de naissance, diplômes, attestations… — optionnel, jusqu'à 10)</label>
+            <div id="documentsGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-sm" id="documentsCam">📷 Prendre une photo</button>
+              <button type="button" class="btn-sm" id="documentsGal">🖼️ Choisir dans la galerie (plusieurs)</button>
+            </div>
+            <input type="file" accept="image/*" capture="environment" id="documentsCamInput" style="display:none;">
+            <input type="file" accept="image/*" multiple id="documentsGalInput" style="display:none;">
+            <span class="hint" id="documentsStatus">0 / 10 photo(s) ajoutée(s)</span>
           </div>
           <div class="row2">
             <div class="field"><label>Nom</label><input name="nom" required></div>
@@ -919,11 +2848,17 @@ routes.candidatForm = () => {
             <div class="field"><label>Pays</label><input name="pays" placeholder="Ex : Côte d'Ivoire" list="paysList"></div>
             <div class="field"><label>Ville</label><input name="ville"></div>
           </div>
+          <div class="field"><label>Nationalité</label><input name="nationalite" placeholder="Ex : Ivoirienne"></div>
           <datalist id="paysList">
             <option>Côte d'Ivoire</option><option>Sénégal</option><option>Mali</option><option>Burkina Faso</option>
             <option>Guinée</option><option>Togo</option><option>Bénin</option><option>Maroc</option><option>France</option>
             <option>Liban</option><option>Émirats arabes unis</option><option>Arabie saoudite</option>
           </datalist>
+          <div class="field">
+            <label>Géolocalisation (avec le consentement du/de la candidat(e))</label>
+            <button type="button" class="btn-sm" id="geoBtn">📍 Activer la géolocalisation</button>
+            <span class="hint" id="geoStatus" style="display:block;margin-top:6px;">Non activée</span>
+          </div>
         </div>
       </div>
 
@@ -992,15 +2927,85 @@ routes.candidatForm = () => {
   `;
 
   let photoData = null;
+  let photoFullData = null;
   let existingCandidats = [];
   DataLayer.listenCandidats(list=>{ existingCandidats = list; });
-  $("#takePhoto").onclick = ()=> $("#photoInput").click();
-  $("#photoInput").onchange = async (e)=>{
+
+  $("#takePhotoCam").onclick = ()=> $("#photoInputCam").click();
+  $("#takePhotoGal").onclick = ()=> $("#photoInputGal").click();
+  async function handleMainPhoto(e){
     const f = e.target.files[0]; if(!f) return;
     $("#photoStatus").textContent = "Compression…";
     photoData = await compressImage(f);
     $("#photoThumb").innerHTML = `<img src="${photoData}">`;
     $("#photoStatus").textContent = "Photo ajoutée ✓";
+  }
+  $("#photoInputCam").onchange = handleMainPhoto;
+  $("#photoInputGal").onchange = handleMainPhoto;
+
+  $("#takeFullCam").onclick = ()=> $("#photoFullInputCam").click();
+  $("#takeFullGal").onclick = ()=> $("#photoFullInputGal").click();
+  async function handleFullPhoto(e){
+    const f = e.target.files[0]; if(!f) return;
+    $("#photoFullStatus").textContent = "Compression…";
+    photoFullData = await compressImage(f, 600, 0.6);
+    $("#photoFullThumb").innerHTML = `<img src="${photoFullData}">`;
+    $("#photoFullStatus").textContent = "Photo ajoutée ✓";
+  }
+  $("#photoFullInputCam").onchange = handleFullPhoto;
+  $("#photoFullInputGal").onchange = handleFullPhoto;
+
+  /* ---- Groupes de photos multiples : galerie / passeport / documents ---- */
+  function makePhotoGroup(prefix, max, w, q){
+    const state = { items: [] };
+    function render(){
+      const grid = $("#"+prefix+"Grid");
+      if(!grid) return;
+      grid.innerHTML = state.items.map((it,i)=>`
+        <div style="position:relative;width:56px;height:56px;">
+          <img src="${it}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;border:1px solid var(--line);">
+          <button type="button" data-rm="${i}" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--stamp);color:#fff;border:none;font-size:12px;cursor:pointer;">✖</button>
+        </div>
+      `).join("");
+      grid.querySelectorAll("[data-rm]").forEach(b=> b.onclick = ()=>{ state.items.splice(+b.dataset.rm,1); render(); });
+      const status = $("#"+prefix+"Status");
+      if(status) status.textContent = `${state.items.length} / ${max} photo(s) ajoutée(s)`;
+    }
+    async function addFile(f){
+      if(!f) return;
+      if(state.items.length >= max){ toast("Maximum "+max+" photos atteint"); return; }
+      const status = $("#"+prefix+"Status");
+      if(status) status.textContent = "Compression…";
+      const data = await compressImage(f, w, q);
+      state.items.push(data);
+      render();
+    }
+    const camBtn = $("#"+prefix+"Cam"), galBtn = $("#"+prefix+"Gal");
+    const camInput = $("#"+prefix+"CamInput"), galInput = $("#"+prefix+"GalInput");
+    if(camBtn) camBtn.onclick = ()=> camInput.click();
+    if(galBtn) galBtn.onclick = ()=> galInput.click();
+    if(camInput) camInput.onchange = async (e)=>{ await addFile(e.target.files[0]); e.target.value=""; };
+    if(galInput) galInput.onchange = async (e)=>{
+      for(const f of Array.from(e.target.files)) await addFile(f);
+      e.target.value = "";
+    };
+    render();
+    return state;
+  }
+  const galerieState = makePhotoGroup("galerie", 10, 380, 0.5);
+  const passeportState = makePhotoGroup("passeport", 10, 720, 0.55);
+  const documentsState = makePhotoGroup("documents", 10, 720, 0.55);
+
+  /* ---- Géolocalisation ---- */
+  let geoData = null;
+  $("#geoBtn").onclick = async ()=>{
+    $("#geoStatus").textContent = "Localisation en cours… (autorisez l'accès si demandé)";
+    geoData = await captureGeo();
+    if(geoData){
+      $("#geoStatus").innerHTML = `Position enregistrée ✓ ${geoBadgeHTML(geoData.lat, geoData.lng)}`;
+    }else{
+      $("#geoStatus").textContent = "Localisation refusée ou indisponible.";
+    }
   };
 
   $("#candForm").onsubmit = async (e)=>{
@@ -1016,10 +3021,21 @@ routes.candidatForm = () => {
     }
     const btn = $("#submitCand"); btn.disabled = true; btn.textContent = "Enregistrement…";
     data.photo = photoData || null;
+    data.photoEntiere = photoFullData || null;
     data.statut = "Disponible";
     data.agentNom = getAgentName() || (session.role==="admin"?"Administrateur":session.role==="supervisor"?`Superviseur (${session.region})`:"Agent");
+    if(geoData){
+      data.geoLat = geoData.lat; data.geoLng = geoData.lng;
+      data.agentGeoLat = geoData.lat; data.agentGeoLng = geoData.lng;
+    }
     try{
       const id = await DataLayer.addCandidat(data);
+      const uploads = [
+        ...galerieState.items.map(d=>({categorie:"galerie", label:"Galerie", data:d})),
+        ...passeportState.items.map(d=>({categorie:"passeport", label:"Passeport", data:d})),
+        ...documentsState.items.map(d=>({categorie:"documents", label:"Document", data:d}))
+      ];
+      for(const u of uploads){ await DataLayer.addFichier(id, u); }
       toast("Fiche enregistrée ✓");
       nav("candidatDetail", {id});
     }catch(err){
@@ -1094,7 +3110,9 @@ routes.placementForm = async (params) => {
                 </select>
               </div>
             </div>
-            <div class="field"><label>Appréciation</label><textarea name="appreciation">${v.appreciation||""}</textarea></div>
+            <div class="field"><label>Appréciation de l'agent</label><textarea name="appreciation">${v.appreciation||""}</textarea></div>
+            <div class="field"><label>Appréciation de l'employeur (si connue)</label><textarea name="appreciationEmployeur">${v.appreciationEmployeur||""}</textarea></div>
+            <div class="field"><label>Appréciation de l'employé(e) (si connue)</label><textarea name="appreciationEmploye">${v.appreciationEmploye||""}</textarea></div>
           </div>
         </div>
         <div class="panel">
@@ -1166,11 +3184,9 @@ routes.share = () => {
     qrMissing = true;
   }
   if(qrMissing){
-    // Solution de secours : générateur QR en ligne (nécessite une connexion internet).
-    // Le QR intégré (hors ligne) reviendra automatiquement dès que qrcode.js sera
-    // bien présent sur le serveur, à côté d'index.html.
+    // Solution de secours automatique si un problème imprévu empêche la génération locale.
     const fallbackUrl = "https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=" + encodeURIComponent(appUrl);
-    svg = `<img src="${fallbackUrl}" alt="QR code" width="220" height="220" onerror="this.outerHTML='<p style=&quot;font-size:13px;max-width:220px;&quot;>QR indisponible pour l\\'instant (pas de connexion et le fichier qrcode.js semble manquant sur le serveur).</p>'">`;
+    svg = `<img src="${fallbackUrl}" alt="QR code" width="220" height="220" onerror="this.outerHTML='<p style=&quot;font-size:13px;max-width:220px;&quot;>QR indisponible pour l\\'instant — vérifiez votre connexion internet.</p>'">`;
   }
 
   mainEl.innerHTML = `
@@ -1179,7 +3195,7 @@ routes.share = () => {
       <div class="body" style="text-align:center;">
         <p class="hint" style="margin-bottom:14px;">Scannez ce code avec l'appareil photo du téléphone, ou partagez le lien ci-dessous à vos assistants.</p>
         <div style="background:#fff; display:inline-block; padding:10px; border-radius:8px; border:1px solid var(--line);">${svg}</div>
-        ${qrMissing ? `<p class="hint" style="color:var(--stamp); margin-top:10px;">⚠️ Le fichier <strong>qrcode.js</strong> n'a pas été trouvé sur le serveur — vérifiez qu'il a bien été téléversé sur GitHub, au même endroit que index.html, puis rechargez cette page.</p>` : ""}
+        ${qrMissing ? `<p class="hint" style="color:var(--stamp); margin-top:10px;">⚠️ Le QR code local n'a pas pu être généré ; celui-ci nécessite une connexion internet. Rechargez la page pour réessayer la version hors-ligne.</p>` : ""}
         <div class="field" style="margin-top:18px; text-align:left;">
           <label>Lien de l'application</label>
           <input id="appLinkInput" value="${appUrl}" readonly>
@@ -1313,13 +3329,25 @@ routes.adminHome = () => {
         </div>
       </div>` : ""}
       <div class="choice-grid">
-        <button class="choice-card" id="toCands">
+        <button class="choice-card" id="newCandAdmin">
           <div class="icon">📇</div>
+          <div class="txt"><h3>Nouvelle fiche candidat(e)</h3><p>Enregistrer un(e) candidat(e) vous-même</p></div>
+        </button>
+        <button class="choice-card" id="newPlacementAdmin">
+          <div class="icon">🤝</div>
+          <div class="txt"><h3>Nouveau placement</h3><p>Créer un placement (activé immédiatement)</p></div>
+        </button>
+        <button class="choice-card" id="toCands">
+          <div class="icon">📋</div>
           <div class="txt"><h3>Tous les candidats</h3><p>Rechercher, consulter et gérer les fiches</p></div>
         </button>
         <button class="choice-card" id="toPlace">
-          <div class="icon">🤝</div>
+          <div class="icon">🗂️</div>
           <div class="txt"><h3>Tous les placements</h3><p>Suivre l'état de chaque placement${commissionTotal>0?` · Commissions : ${commissionTotal.toLocaleString("fr-FR")}`:""}</p></div>
+        </button>
+        <button class="choice-card" id="toAgents">
+          <div class="icon">🧑‍💼</div>
+          <div class="txt"><h3>Comptes agents</h3><p>Codes d'accès, blocage et suppression</p></div>
         </button>
         <button class="choice-card" id="toOutils">
           <div class="icon">🛠️</div>
@@ -1341,18 +3369,26 @@ routes.adminHome = () => {
           <div class="icon">🏆</div>
           <div class="txt"><h3>Performance par agent</h3><p>Fiches et placements réalisés par chacun</p></div>
         </button>
+        <button class="choice-card" id="toRecap">
+          <div class="icon">📊</div>
+          <div class="txt"><h3>Tableau récapitulatif</h3><p>Agent, employeur, employé, salaires, dates, appréciations</p></div>
+        </button>
         <button class="choice-card" id="toShareAdmin">
           <div class="icon">📲</div>
           <div class="txt"><h3>Partager l'application</h3><p>Lien et QR code à donner aux assistants</p></div>
         </button>
       </div>
     `;
+    $("#newCandAdmin").onclick = ()=> nav("candidatForm");
+    $("#newPlacementAdmin").onclick = ()=> nav("placementForm");
+    $("#toAgents").onclick = ()=> nav("agentsAdmin");
     $("#toCands").onclick = ()=> nav("list",{tab:"candidats"});
     $("#toPlace").onclick = ()=> nav("list",{tab:"placements"});
     $("#toOutils").onclick = ()=> nav("outils");
     $("#toOutils2").onclick = ()=> nav("outils2");
     $("#toValidation").onclick = ()=> nav("validation");
     $("#toActualites").onclick = ()=> nav("actualites");
+    $("#toRecap").onclick = ()=> nav("recap");
     $("#toPerformance").onclick = ()=> nav("performance");
     $("#toShareAdmin").onclick = ()=> nav("share");
     const seeAlerts = $("#seeAlerts");
@@ -1365,6 +3401,66 @@ routes.adminHome = () => {
 /* ---------------- OUTIL 22 — VALIDATION DES PLACEMENTS PAR L'ADMINISTRATEUR ---------------- */
 /* ---------------- OUTIL 23 — MES PLACEMENTS (suivi agent) ---------------- */
 /* ---------------- OUTIL 25 — PERFORMANCE PAR AGENT ---------------- */
+/* ---------------- OUTIL 27 — TABLEAU RÉCAPITULATIF & SUIVI ---------------- */
+routes.recap = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Tableau récapitulatif","Suivi complet des placements", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  let cands=[], places=[];
+  DataLayer.listenCandidats(list=>{ cands= session.region ? list.filter(c=>c.pays===session.region) : list; draw(); });
+  DataLayer.listenPlacements(list=>{ places= session.region ? list.filter(p=> cands.some(c=>c.id===p.candidatId)) : list; draw(); });
+
+  function duree(debut,fin){
+    const d1 = toDateSafe(debut);
+    if(!d1) return "—";
+    const d2 = fin ? toDateSafe(fin) : new Date();
+    if(!d2) return "—";
+    const jours = daysBetween(d1,d2);
+    if(jours < 0) return "—";
+    const mois = Math.floor(jours/30);
+    const restJours = jours % 30;
+    return mois>0 ? `${mois} mois${restJours?` ${restJours}j`:""}` : `${jours} jour(s)`;
+  }
+
+  function draw(){
+    mainEl.innerHTML = `
+      <div class="panel" id="recapPrintArea">
+        <div class="head"><h2>Tableau récapitulatif &amp; suivi</h2><span class="num mono">${places.length}</span></div>
+        <div class="body" style="overflow-x:auto;">
+          <table style="border-collapse:collapse; width:100%; font-size:12px; white-space:nowrap;">
+            <thead>
+              <tr style="border-bottom:2px solid var(--ink);">
+                ${["Agent","Employeur","Employé(e)","Travail","Salaire/mois","Début","Durée","Fin","Statut","Appréciation agent","Appréciation employeur","Appréciation employé(e)"]
+                  .map(h=>`<th style="text-align:left;padding:6px 10px;font-family:'Fraunces',serif;">${h}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${places.map(p=>`
+                <tr style="border-bottom:1px solid var(--line);">
+                  <td style="padding:6px 10px;">${p.agentNom||"—"}</td>
+                  <td style="padding:6px 10px;">${p.employeur||"—"}</td>
+                  <td style="padding:6px 10px;">${p.candidatNom||"—"}</td>
+                  <td style="padding:6px 10px;">${p.tache||"—"}</td>
+                  <td style="padding:6px 10px;">${fmtMoney(p.salaire,p.devise)}</td>
+                  <td style="padding:6px 10px;">${p.dateDebut||"—"}</td>
+                  <td style="padding:6px 10px;">${duree(p.dateDebut,p.dateFin)}</td>
+                  <td style="padding:6px 10px;">${p.dateFin||"En cours"}</td>
+                  <td style="padding:6px 10px;">${p.statut||"—"}</td>
+                  <td style="padding:6px 10px;max-width:160px;white-space:normal;">${p.appreciation||"—"}</td>
+                  <td style="padding:6px 10px;max-width:160px;white-space:normal;">${p.appreciationEmployeur||"—"}</td>
+                  <td style="padding:6px 10px;max-width:160px;white-space:normal;">${p.appreciationEmploye||"—"}</td>
+                </tr>
+              `).join("") || `<tr><td colspan="12" style="padding:20px;text-align:center;color:var(--ink-2);">Aucun placement enregistré.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <button class="btn ghost" id="printRecap">🖨️ Imprimer ce tableau</button>
+    `;
+    $("#printRecap").onclick = ()=> window.print();
+  }
+};
+
 routes.performance = () => {
   if(!isAdminish()){ nav("adminLogin"); return; }
   setTop("Performance par agent","Vue d'ensemble par personne", true);
@@ -1489,7 +3585,7 @@ routes.validation = () => {
           <div class="section-title">Informations sur l'employé(e)</div>
           <div class="detail-grid">
             <div><div class="k">Nom complet</div><div class="v">${p.candidatNom||"—"}</div></div>
-            <div><div class="k">Contact</div><div class="v">${cand ? (cand.contact||"—") : "—"}</div></div>
+            <div><div class="k">Contact</div><div class="v">${cand ? (cand.contact||"—") : "—"}${cand?contactActionsHTML(cand.contact):""}</div></div>
             <div><div class="k">Domicile</div><div class="v">${cand ? (cand.domicile||"—") : "—"}</div></div>
             <div><div class="k">Domaine</div><div class="v">${cand ? (cand.domaineCompetence||"—") : "—"}</div></div>
           </div>
@@ -1497,7 +3593,7 @@ routes.validation = () => {
           <div class="section-title">Informations sur l'employeur</div>
           <div class="detail-grid">
             <div><div class="k">Employeur</div><div class="v">${p.employeur||"—"}</div></div>
-            <div><div class="k">Contact employeur</div><div class="v">${p.employeurContact||"—"}</div></div>
+            <div><div class="k">Contact employeur</div><div class="v">${p.employeurContact||"—"}${contactActionsHTML(p.employeurContact)}</div></div>
             <div><div class="k">Pays du poste</div><div class="v">${p.paysEmployeur||"—"}</div></div>
             <div><div class="k">Tâche</div><div class="v">${p.tache||"—"}</div></div>
             <div><div class="k">Salaire proposé</div><div class="v">${fmtMoney(p.salaire,p.devise)}</div></div>
@@ -1571,26 +3667,245 @@ routes.outils = () => {
 };
 
 /* ---------------- OUTIL : IDENTIFICATION DE L'AGENT ---------------- */
-routes.agentIdentity = () => {
-  setTop("Identification","Traçabilité des actions", true);
-  const current = getAgentName();
+routes.outils2 = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Gestion internationale","11 outils pour opérer à l'échelle mondiale", true);
+  const tools = [
+    ["🌍","Pays & Ville","Champs et filtres géographiques sur chaque fiche","geoList"],
+    ["🗺️","Répartition géographique","Nombre de candidat(e)s et placements par pays","geo"],
+    ["💱","Multi-devises","FCFA, EUR, USD, GBP, CAD, AED, MAD sur les placements","finance"],
+    ["🌐","Interface multilingue","Changer la langue de navigation (bouton en haut)","langues"],
+    ["🔤","Traduction des fiches","Traduire une fiche reçue, peu importe sa langue","list"],
+    ["🛂","Documents de voyage","Alertes passeport / visa proches de l'expiration","alertes"],
+    ["✅","Checklist de conformité","Contrat, assurance, visa, billet — par placement","list"],
+    ["🔑","Rôles régionaux","Code superviseur limité à un pays","rolesInfo"],
+    ["🔔","Notifications","Alertes automatiques sur cet appareil","notifications"],
+    ["🌓","Mode sombre","Confort visuel, bouton en haut de l'écran","themeInfo"],
+    ["🧬","Anti-doublons","Détection automatique à l'inscription","dedupInfo"]
+  ];
+  mainEl.innerHTML = `
+    <div class="choice-grid">
+      ${tools.map(([icon,title,desc,route])=>`
+        <button class="choice-card" data-route="${route}">
+          <div class="icon">${icon}</div>
+          <div class="txt"><h3>${title}</h3><p>${desc}</p></div>
+        </button>
+      `).join("")}
+    </div>
+  `;
+  mainEl.querySelectorAll(".choice-card").forEach(el=>{
+    el.onclick = ()=>{
+      const r = el.dataset.route;
+      if(r === "geoList") nav("list", {tab:"candidats"});
+      else if(r === "list") nav("list", {tab:"candidats"});
+      else nav(r);
+    };
+  });
+};
+
+/* ---------------- OUTIL : RÉPARTITION GÉOGRAPHIQUE ---------------- */
+routes.geo = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Répartition géographique","Candidats et placements par pays", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  let cands=[], places=[];
+  DataLayer.listenCandidats(list=>{ cands= session.region ? list.filter(c=>c.pays===session.region) : list; draw(); });
+  DataLayer.listenPlacements(list=>{ places= session.region ? list.filter(p=> cands.some(c=>c.id===p.candidatId)) : list; draw(); });
+  function draw(){
+    const byPays = {};
+    cands.forEach(c=>{ const p = c.pays || "Non renseigné"; byPays[p] = byPays[p] || {candidats:0, placements:0}; byPays[p].candidats++; });
+    places.forEach(pl=>{
+      const cand = cands.find(c=>c.id===pl.candidatId);
+      const p = (cand && cand.pays) || "Non renseigné";
+      byPays[p] = byPays[p] || {candidats:0, placements:0};
+      byPays[p].placements++;
+    });
+    const rows = Object.entries(byPays).sort((a,b)=>b[1].candidats-a[1].candidats);
+    const max = Math.max(1, ...rows.map(r=>r[1].candidats));
+    mainEl.innerHTML = rows.length ? `
+      <div class="panel"><div class="body">
+        ${rows.map(([pays,d])=>`
+          <div style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:4px;">
+              <strong>${pays}</strong><span class="hint">${d.candidats} candidat(e)s · ${d.placements} placement(s)</span>
+            </div>
+            <div class="progressbar"><div class="fill" style="width:${Math.round(d.candidats/max*100)}%; background:var(--stamp);"></div></div>
+          </div>
+        `).join("")}
+      </div></div>
+    ` : `<div class="center-msg">Aucune donnée géographique pour l'instant. Renseignez le pays sur les fiches candidats.</div>`;
+  }
+};
+
+/* ---------------- OUTIL : LANGUES DE L'INTERFACE ---------------- */
+routes.langues = () => {
+  setTop("Langues","Interface multilingue", true);
   mainEl.innerHTML = `
     <div class="panel">
-      <div class="head"><h2>Votre nom</h2></div>
+      <div class="head"><h2>Choisir la langue de navigation</h2></div>
       <div class="body">
-        <p class="hint" style="margin-top:0;">Ce nom sera associé à chaque fiche et placement que vous enregistrez, pour que l'administrateur sache qui a fait quoi.</p>
-        <div class="field"><label>Nom et prénoms</label><input id="agentNameInput" value="${current}" placeholder="Ex : Aya Koffi"></div>
-        <button class="btn stamp" id="saveAgentName">Enregistrer</button>
+        <p class="hint" style="margin-top:0;">Les menus et titres de l'application s'affichent dans la langue choisie. Les fiches candidats restent dans la langue utilisée par l'agent qui les a saisies (voir l'outil « Traduction des fiches » pour les lire dans une autre langue).</p>
+        <div class="choice-grid">
+          ${Object.keys(I18N).map(code=>`
+            <button class="choice-card" data-lg="${code}">
+              <div class="icon">🌐</div>
+              <div class="txt"><h3>${LANG_NAMES[code]||code}</h3><p>${code===getLang()?"Langue actuelle":"Passer à cette langue"}</p></div>
+            </button>
+          `).join("")}
+        </div>
       </div>
     </div>
   `;
-  $("#saveAgentName").onclick = ()=>{
-    const v = $("#agentNameInput").value.trim();
-    if(!v){ toast("Merci de saisir un nom"); return; }
-    setAgentName(v);
-    toast("Nom enregistré ✓");
-    history.length>1 ? history.back() : nav(session.role==="admin"?"adminHome":"agentHome");
+  mainEl.querySelectorAll("[data-lg]").forEach(el=>{
+    el.onclick = ()=>{ setLang(el.dataset.lg); $("#langToggle").textContent = getLang().toUpperCase(); render(); };
+  });
+};
+
+/* ---------------- OUTIL : RÔLES RÉGIONAUX (info) ---------------- */
+routes.rolesInfo = () => {
+  setTop("Rôles régionaux","Superviseurs par pays", true);
+  mainEl.innerHTML = `
+    <div class="panel"><div class="body">
+      <p style="margin-top:0;">Un superviseur régional se connecte avec un code différent du vôtre, puis indique le pays qu'il supervise. Il ne voit alors que les candidat(e)s et placements de ce pays.</p>
+      <div class="field"><label>Code superviseur régional (à communiquer)</label><input value="${SUPERVISOR_CODE}" readonly class="mono"></div>
+      <p class="hint">Ce code est identique pour tous vos superviseurs ; c'est le pays qu'ils indiquent à la connexion qui détermine ce qu'ils voient.</p>
+    </div></div>
+  `;
+};
+
+/* ---------------- OUTIL : NOTIFICATIONS NAVIGATEUR ---------------- */
+routes.notifications = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Notifications","Alertes sur cet appareil", true);
+  const supported = "Notification" in window;
+  const perm = supported ? Notification.permission : "unsupported";
+  mainEl.innerHTML = `
+    <div class="panel"><div class="body">
+      <p style="margin-top:0;">Recevez une notification sur cet appareil quand un placement attend votre validation ou qu'une échéance approche.</p>
+      <p class="hint">Statut actuel : <strong>${perm==="granted"?"Activées ✅":perm==="denied"?"Bloquées par le navigateur ❌":perm==="unsupported"?"Non prises en charge sur cet appareil":"Non activées"}</strong></p>
+      ${perm!=="granted" && supported ? `<button class="btn stamp" id="enableNotif">🔔 Activer les notifications</button>` : ""}
+      ${perm==="granted" ? `<button class="btn ghost" id="testNotif">Envoyer une notification test</button>` : ""}
+    </div></div>
+  `;
+  const btn = $("#enableNotif");
+  if(btn) btn.onclick = async ()=>{
+    const res = await Notification.requestPermission();
+    if(res==="granted"){ toast("Notifications activées ✓"); new Notification("Shaman Chooz", {body:"Les notifications sont maintenant actives."}); }
+    render();
   };
+  const testBtn = $("#testNotif");
+  if(testBtn) testBtn.onclick = ()=> new Notification("Shaman Chooz Production", {body:"Ceci est une notification test."});
+};
+
+/* ---------------- OUTIL : MODE SOMBRE (info) ---------------- */
+routes.themeInfo = () => {
+  setTop("Mode sombre","Confort visuel", true);
+  mainEl.innerHTML = `
+    <div class="panel"><div class="body">
+      <p style="margin-top:0;">Appuyez sur le bouton 🌓 en haut de l'écran, à tout moment, pour basculer entre thème clair et thème sombre — utile en cas de faible luminosité ou pour préserver la batterie.</p>
+      <button class="btn stamp" id="toggleFromInfo">Essayer maintenant</button>
+    </div></div>
+  `;
+  $("#toggleFromInfo").onclick = ()=> $("#themeToggle").click();
+};
+
+/* ---------------- OUTIL : ANTI-DOUBLONS (info) ---------------- */
+routes.dedupInfo = () => {
+  setTop("Anti-doublons","Détection automatique", true);
+  mainEl.innerHTML = `
+    <div class="panel"><div class="body">
+      <p style="margin-top:0;">Quand un agent enregistre un(e) nouveau/nouvelle candidat(e) avec un numéro de contact déjà présent dans la base, l'application l'avertit immédiatement et lui demande de confirmer avant de créer une fiche en double. Aucune configuration n'est nécessaire : c'est automatique.</p>
+    </div></div>
+  `;
+};
+
+routes.agentIdentity = () => {
+  setTop("Connexion agent","Nom et code d'accès", true);
+  const current = getAgentName();
+  const currentCode = getAgentCode();
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  DataLayer.listenAgentAccounts(accounts=>{
+    mainEl.innerHTML = `
+      <div class="panel">
+        <div class="head"><h2>Votre identité</h2></div>
+        <div class="body">
+          <p class="hint" style="margin-top:0;">Votre nom et votre code seront associés à chaque fiche et placement que vous enregistrez. La première fois, choisissez librement un code ; il vous sera ensuite demandé à chaque connexion.</p>
+          <div class="field"><label>Nom et prénoms</label><input id="agentNameInput" value="${current}" placeholder="Ex : Aya Koffi"></div>
+          <div class="field"><label>Téléphone (pour que l'administrateur puisse vous joindre)</label><input id="agentTelInput" value="${(accounts.find(a=>a.nom.trim().toLowerCase()===current.toLowerCase())||{}).tel||""}" placeholder="Ex : 07 00 00 00 00"></div>
+          <div class="codebox-wrap" style="width:100%;">
+            <input type="password" id="agentCodeInput" class="codebox mono" style="width:100%;" value="${currentCode}" placeholder="Votre code personnel">
+            <button type="button" class="eye-toggle" id="agentEyeToggle" aria-label="Afficher/masquer">👁️</button>
+          </div>
+          <div class="err" id="agentErr" style="margin-top:10px;"></div>
+          <button class="btn stamp" id="saveAgentName" style="margin-top:10px;">Se connecter</button>
+        </div>
+      </div>
+    `;
+    $("#agentEyeToggle").onclick = ()=>{
+      const inp = $("#agentCodeInput");
+      const showing = inp.type === "text";
+      inp.type = showing ? "password" : "text";
+      $("#agentEyeToggle").textContent = showing ? "👁️" : "🙈";
+    };
+    $("#saveAgentName").onclick = async ()=>{
+      const v = $("#agentNameInput").value.trim();
+      const c = $("#agentCodeInput").value.trim();
+      const tel = $("#agentTelInput").value.trim();
+      const errBox = $("#agentErr");
+      errBox.textContent = "";
+      if(!v || !c){ errBox.textContent = "Merci de renseigner votre nom et votre code."; return; }
+      const existing = accounts.find(a=> a.nom.trim().toLowerCase() === v.toLowerCase());
+      if(existing){
+        if(!existing.actif){ errBox.textContent = "🚫 Ce compte a été bloqué par l'administrateur. Contactez-le."; return; }
+        if(existing.code !== c){ errBox.textContent = "Code incorrect pour ce nom."; return; }
+        if(tel && tel !== existing.tel){ await DataLayer.updateAgentAccount(existing.id, {tel}); }
+      }else{
+        await DataLayer.addAgentAccount(v, c, tel);
+      }
+      setAgentName(v);
+      setAgentCode(c);
+      toast("Connecté(e) ✓");
+      nav(session.role==="admin"?"adminHome":"agentHome");
+    };
+  });
+};
+
+/* ---------------- OUTIL 26bis : GESTION DES COMPTES AGENTS (admin) ---------------- */
+routes.agentsAdmin = () => {
+  if(!isAdminish()){ nav("adminLogin"); return; }
+  setTop("Comptes agents","Gérer vos assistants", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  DataLayer.listenAgentAccounts(accounts=>{
+    mainEl.innerHTML = accounts.length ? accounts.map(a=>`
+      <div class="rowitem" style="cursor:default; align-items:flex-start;">
+        <div class="av">${a.actif?"👤":"🚫"}</div>
+        <div class="info">
+          <div class="n1">${a.nom}</div>
+          <div class="n2">Code : <span class="mono">${a.code}</span> · ${a.actif?"Actif":"Bloqué"} · depuis le ${fmtDate(a.creeLe)}</div>
+          ${a.tel?`<div class="n2">📞 ${a.tel}${contactActionsHTML(a.tel)}</div>`:""}
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <button class="btn-sm" data-toggle="${a.id}" data-state="${a.actif}">${a.actif?"Bloquer":"Débloquer"}</button>
+          <button class="btn-sm" data-del="${a.id}" data-nom="${a.nom}">Supprimer</button>
+        </div>
+      </div>
+    `).join("") : `<div class="center-msg">Aucun agent n'a encore créé de compte.</div>`;
+
+    mainEl.querySelectorAll("[data-toggle]").forEach(btn=>{
+      btn.onclick = async ()=>{
+        const actif = btn.dataset.state === "true";
+        await DataLayer.updateAgentAccount(btn.dataset.toggle, {actif: !actif});
+        toast(actif ? "Agent bloqué" : "Agent débloqué");
+      };
+    });
+    mainEl.querySelectorAll("[data-del]").forEach(btn=>{
+      btn.onclick = async ()=>{
+        if(!confirm(`Supprimer définitivement le compte de ${btn.dataset.nom} ?`)) return;
+        await DataLayer.deleteAgentAccount(btn.dataset.del);
+        toast("Compte supprimé");
+      };
+    });
+  });
 };
 
 /* ---------------- OUTIL : JOURNAL D'ACTIVITÉ ---------------- */
@@ -1883,28 +4198,50 @@ routes.list = (params) => {
 routes.candidatDetail = async (params) => {
   setTop("Fiche candidat(e)","Détail", true);
   mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
-  let cand=null, places=[];
+  let cand=null, places=[], fichiers=[];
   DataLayer.listenCandidats(list=>{ cand = list.find(c=>c.id===params.id); draw(); });
   DataLayer.listenPlacements(list=>{ places = list.filter(p=>p.candidatId===params.id); draw(); });
+  DataLayer.listenFichiers(params.id, list=>{ fichiers = list; draw(); });
 
   function draw(){
     if(!cand) return;
     const relLabels = {pere:"Père",mere:"Mère",oncle:"Oncle",tante:"Tante",frere:"Frère",soeur:"Sœur",
       cousin:"Cousin",cousine:"Cousine",beaufrere:"Beau-frère",bellesoeur:"Belle-sœur",
       ami1:"Ami(e) réf. 1",ami2:"Ami(e) réf. 2"};
+    const galerieItems = [...(cand.galerie||[]), ...fichiers.filter(f=>f.categorie==="galerie").map(f=>f.data)];
+    const passeportItems = fichiers.filter(f=>f.categorie==="passeport").map(f=>f.data);
+    const documentsItems = fichiers.filter(f=>f.categorie==="documents").map(f=>f.data);
     mainEl.innerHTML = `
-      <div class="panel">
+      <div class="panel" id="candPrintArea">
         <div class="head"><h2>${cand.nom||""} ${cand.prenoms||""}</h2></div>
         <div class="body">
           <div class="photo-box">
-            <div class="thumb">${cand.photo?`<img src="${cand.photo}">`:"PHOTO"}</div>
+            <div class="thumb" id="candThumbId" style="${cand.photo?'cursor:pointer;':''}">${cand.photo?`<img src="${cand.photo}">`:"PHOTO"}</div>
+            ${cand.photoEntiere?`<div class="thumb" id="candThumbFull" style="width:78px;height:96px;cursor:pointer;"><img src="${cand.photoEntiere}"></div>`:""}
             <div class="detail-grid" style="flex:1;">
-              <div><div class="k">Contact</div><div class="v">${cand.contact||"—"}</div></div>
+              <div><div class="k">Contact</div><div class="v">${cand.contact||"—"}${contactActionsHTML(cand.contact)}</div></div>
               <div><div class="k">Âge</div><div class="v">${cand.age||"—"}</div></div>
               <div><div class="k">Domicile</div><div class="v">${cand.domicile||"—"}</div></div>
               <div><div class="k">Situation</div><div class="v">${cand.situationMatrimoniale||"—"}</div></div>
+              <div><div class="k">Pays / Nationalité</div><div class="v">${cand.pays||"—"} / ${cand.nationalite||"—"}</div></div>
+              ${cand.geoLat!=null ? `<div><div class="k">Localisation</div><div class="v">${geoBadgeHTML(cand.geoLat,cand.geoLng)}</div></div>` : ""}
             </div>
           </div>
+          ${galerieItems.length ? `
+          <div class="section-title">Galerie de photos (${galerieItems.length})</div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
+            ${galerieItems.map(src=>`<img src="${src}" style="width:64px;height:64px;object-fit:cover;border-radius:4px;border:1px solid var(--line);cursor:pointer;" class="galThumb">`).join("")}
+          </div>` : ""}
+          ${passeportItems.length ? `
+          <div class="section-title">Photos du passeport (${passeportItems.length})</div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
+            ${passeportItems.map(src=>`<img src="${src}" style="width:64px;height:64px;object-fit:cover;border-radius:4px;border:1px solid var(--line);cursor:pointer;" class="galThumb">`).join("")}
+          </div>` : ""}
+          ${documentsItems.length ? `
+          <div class="section-title">Documents (${documentsItems.length})</div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
+            ${documentsItems.map(src=>`<img src="${src}" style="width:64px;height:64px;object-fit:cover;border-radius:4px;border:1px solid var(--line);cursor:pointer;" class="galThumb">`).join("")}
+          </div>` : ""}
           <div class="section-title">Études &amp; compétences</div>
           <div class="detail-grid">
             <div><div class="k">Niveau</div><div class="v">${cand.niveauEtude||"—"}</div></div>
@@ -1913,12 +4250,24 @@ routes.candidatDetail = async (params) => {
             <div><div class="k">Salaire souhaité</div><div class="v">${cand.salaireSouhaite||"—"}</div></div>
           </div>
           ${cand.experiences?`<div class="section-title">Expériences</div><p style="font-size:13.5px;">${cand.experiences}</p>`:""}
+          ${isAdminish() ? `
+          <div class="section-title">🔤 Traduction</div>
+          <div class="row2" style="align-items:end;">
+            <div class="field" style="margin-bottom:0;"><label>Traduire vers</label>
+              <select id="translateLang">${Object.entries(LANG_NAMES).map(([c,n])=>`<option value="${c}">${n}</option>`).join("")}</select>
+            </div>
+            <button class="btn-sm" id="translateBtn" style="margin-bottom:2px;">Traduire cette fiche</button>
+          </div>
+          <div id="translateResult"></div>
+          ` : ""}
           <div class="section-title">Famille &amp; références</div>
           <div class="detail-grid">
             ${Object.entries(relLabels).filter(([k])=>cand[k+"_nom"]).map(([k,label])=>`
-              <div><div class="k">${label}</div><div class="v">${cand[k+"_nom"]||""} — ${cand[k+"_contact"]||""}</div></div>
+              <div><div class="k">${label}</div><div class="v">${cand[k+"_nom"]||""} — ${cand[k+"_contact"]||""}${contactActionsHTML(cand[k+"_contact"])}</div></div>
             `).join("") || `<div class="hint">Aucune référence renseignée.</div>`}
           </div>
+          <div class="section-title">Enregistré par</div>
+          <p style="font-size:13px;color:var(--ink-2);">🧑‍💼 ${cand.agentNom||"—"} · ${fmtDate(cand.creeLe)}${cand.agentGeoLat!=null?` · ${geoBadgeHTML(cand.agentGeoLat,cand.agentGeoLng,"Lieu d'enregistrement")}`:""}</p>
         </div>
       </div>
       <div class="panel">
@@ -1933,6 +4282,7 @@ routes.candidatDetail = async (params) => {
           <button class="btn ghost" id="newPlaceFor" style="margin-top:8px;">+ Nouveau placement pour ce/cette candidat(e)</button>
         </div>
       </div>
+      <button class="btn ghost" id="printDossier" style="margin-bottom:16px;">🖨️ Imprimer le dossier complet (fiche + photos + documents)</button>
       <div class="panel">
         <div class="head"><h2>Notes internes</h2></div>
         <div class="body">
@@ -1948,6 +4298,31 @@ routes.candidatDetail = async (params) => {
       </div>
     `;
     $("#newPlaceFor").onclick = ()=> nav("placementForm",{candidatId:cand.id});
+    mainEl.querySelectorAll(".galThumb").forEach(img=> img.onclick = ()=> openImage(img.src));
+    const idThumb = $("#candThumbId");
+    if(idThumb && cand.photo) idThumb.onclick = ()=> openImage(cand.photo);
+    const fullThumb = $("#candThumbFull");
+    if(fullThumb && cand.photoEntiere) fullThumb.onclick = ()=> openImage(cand.photoEntiere);
+    const printBtn = $("#printDossier");
+    if(printBtn) printBtn.onclick = ()=> window.print();
+    const trBtn = $("#translateBtn");
+    if(trBtn) trBtn.onclick = async ()=>{
+      const target = $("#translateLang").value;
+      const box = $("#translateResult");
+      box.innerHTML = `<p class="hint">Traduction en cours…</p>`;
+      const fields = [["Domaine",cand.domaineCompetence],["Expériences",cand.experiences],["Salaire souhaité",cand.salaireSouhaite]].filter(([,v])=>v);
+      if(!fields.length){ box.innerHTML = `<p class="hint">Rien à traduire sur cette fiche.</p>`; return; }
+      try{
+        const results = await Promise.all(fields.map(async ([label,text])=>{
+          const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=autodetect|${target}`);
+          const json = await res.json();
+          return [label, json.responseData ? json.responseData.translatedText : text];
+        }));
+        box.innerHTML = `<div class="panel" style="margin-top:10px;"><div class="body">${results.map(([l,tx])=>`<div style="margin-bottom:8px;"><strong style="font-size:12.5px;">${l}</strong><p style="font-size:13.5px;margin:2px 0 0;">${tx}</p></div>`).join("")}</div></div>`;
+      }catch(e){
+        box.innerHTML = `<p class="hint" style="color:var(--stamp);">Traduction indisponible (nécessite une connexion internet).</p>`;
+      }
+    };
     $("#addNoteBtn").onclick = async ()=>{
       const txt = $("#newNoteInput").value.trim();
       if(!txt) return;
@@ -1975,7 +4350,7 @@ routes.placementDetail = async (params) => {
         <div class="body">
           <div class="detail-grid">
             <div><div class="k">Candidat(e)</div><div class="v">${p.candidatNom||"—"}</div></div>
-            <div><div class="k">Contact employeur</div><div class="v">${p.employeurContact||"—"}</div></div>
+            <div><div class="k">Contact employeur</div><div class="v">${p.employeurContact||"—"}${contactActionsHTML(p.employeurContact)}</div></div>
             <div><div class="k">Tâche</div><div class="v">${p.tache||"—"}</div></div>
             <div><div class="k">Salaire</div><div class="v">${fmtMoney(p.salaire,p.devise)}</div></div>
             <div><div class="k">Pays du poste</div><div class="v">${p.paysEmployeur||"—"}</div></div>
@@ -1989,7 +4364,9 @@ routes.placementDetail = async (params) => {
           <div class="checklist" style="font-size:13px;">
             ${checks.map(([k,label])=>`<div>${p[k]?"✅":"⬜️"} ${label}</div>`).join("")}
           </div>
-          ${p.appreciation?`<div class="section-title">Appréciation</div><p style="font-size:13.5px;">${p.appreciation}</p>`:""}
+          ${p.appreciation?`<div class="section-title">Appréciation de l'agent</div><p style="font-size:13.5px;">${p.appreciation}</p>`:""}
+          ${p.appreciationEmployeur?`<div class="section-title">Appréciation de l'employeur</div><p style="font-size:13.5px;">${p.appreciationEmployeur}</p>`:""}
+          ${p.appreciationEmploye?`<div class="section-title">Appréciation de l'employé(e)</div><p style="font-size:13.5px;">${p.appreciationEmploye}</p>`:""}
           <div class="section-title">Agence</div>
           <p style="font-size:12.5px;color:var(--ink-2);">AGENCE SHAMAN CHOOZ PRODUCTION — Fiche de suivi de placement</p>
           ${p.statut==="Actif" && isAdminish() ? `<button class="btn gold" id="closeIt" style="margin-top:14px;">Marquer comme terminé</button>`:""}
@@ -2010,7 +4387,12 @@ routes.placementDetail = async (params) => {
 const avatarBtn = $("#avatarBtn");
 const avatarOverlay = $("#avatarOverlay");
 function openAvatar(){ avatarOverlay.classList.add("show"); }
-function closeAvatar(){ avatarOverlay.classList.remove("show"); }
+function closeAvatar(){
+  avatarOverlay.classList.remove("show");
+  // Remet la photo de profil par défaut si une autre image a été affichée
+  $("#avatarOverlayImg").src = "profile-full.jpg";
+}
+function openImage(src){ $("#avatarOverlayImg").src = src; avatarOverlay.classList.add("show"); }
 avatarBtn.addEventListener("click", openAvatar);
 avatarOverlay.addEventListener("click", closeAvatar);
 
@@ -2019,11 +4401,8 @@ $("#themeToggle").addEventListener("click", ()=>{
   applyTheme(document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark");
 });
 $("#langToggle").textContent = getLang().toUpperCase();
-$("#langToggle").addEventListener("click", ()=>{
-  setLang(getLang()==="fr" ? "en" : "fr");
-  $("#langToggle").textContent = getLang().toUpperCase();
-  render();
-});
+$("#langToggle").addEventListener("click", ()=> nav("langues"));
+$("#printBtn").addEventListener("click", ()=> window.print());
 
 /* ---- Service worker ---- */
 if('serviceWorker' in navigator){

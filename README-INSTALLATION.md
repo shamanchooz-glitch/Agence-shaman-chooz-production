@@ -92,8 +92,9 @@ Comme vous hébergez déjà vos projets sur GitHub :
 
 1. Créez un nouveau dépôt (ex: `shaman-bara-center-app`).
 2. Ajoutez-y les fichiers : `index.html`, `manifest.json`, `sw.js`,
-   `icon-192.png`, `icon-512.png`, `avatar.jpg`, `profile-full.jpg`,
-   `qrcode.js`.
+   `icon-192.png`, `icon-512.png`, `avatar.jpg`, `profile-full.jpg`.
+   (Le QR code est désormais intégré directement dans `index.html`,
+   aucun fichier séparé n'est nécessaire pour lui.)
 3. Allez dans **Settings → Pages**, choisissez la branche `main` et le
    dossier `/ (root)`, puis **Save**.
 4. Après 1 à 2 minutes, votre application sera disponible à une adresse du
@@ -177,6 +178,27 @@ authentification Firebase — dites-le-moi si vous le souhaitez.
 
 Ces outils ne nécessitent aucune configuration supplémentaire : ils utilisent la
 même base Firebase déjà en place.
+
+## Dernières fonctionnalités ajoutées
+
+- **Géolocalisation** : un bouton sur la fiche candidat capture la position
+  (avec consentement du navigateur) et l'associe à la fois au/à la candidat(e)
+  et à l'agent qui enregistre — visible avec un lien Google Maps.
+- **Contacts cliquables** : partout où un numéro apparaît (candidat, famille,
+  employeur, agents), trois boutons permettent d'appeler, d'ouvrir WhatsApp
+  ou d'envoyer un SMS directement.
+- **Nationalité**, **photos du passeport** (jusqu'à 10 pages), **galerie**
+  (10 photos) et **documents** (10 : pièce d'identité, extrait de naissance,
+  diplômes…) — chaque groupe accepte la prise de photo par l'appareil ou une
+  sélection multiple depuis la galerie.
+- **Impression** : un bouton 🖨️ est désormais présent en haut de chaque écran,
+  et la fiche candidat dispose d'un bouton dédié « Imprimer le dossier
+  complet » (fiche + toutes les photos/documents + informations de l'agent).
+- **Tableau récapitulatif** (espace administrateur) : une vue unique avec
+  agent, employeur, employé(e), travail, salaire, dates, durée et les trois
+  appréciations (agent / employeur / employé), imprimable à tout moment.
+- **Comptes agents avec téléphone** : chaque agent peut renseigner son
+  numéro, visible et cliquable par l'administrateur.
 
 ## Besoin d'aide ?
 

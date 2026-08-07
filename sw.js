@@ -1,4 +1,4 @@
-const CACHE_NAME = "shaman-bara-center-v1";
+const CACHE_NAME = "shaman-bara-center-v3";
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -6,8 +6,7 @@ const CORE_ASSETS = [
   "./icon-192.png",
   "./icon-512.png",
   "./avatar.jpg",
-  "./profile-full.jpg",
-  "./qrcode.js"
+  "./profile-full.jpg"
 ];
 
 self.addEventListener("install", (event) => {
