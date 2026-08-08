@@ -2413,6 +2413,37 @@ function applyTheme(t){ document.documentElement.setAttribute("data-theme", t); 
 applyTheme(localStorage.getItem(THEME_KEY) || "light");
 
 /* =========================================================
+   OUTIL — INSTALLATION DIRECTE DE L'APPLICATION (PWA)
+   Fonctionne sur Android/Chrome/Edge via l'invite native, et
+   affiche des instructions adaptées sur iOS/Safari (qui ne
+   permet pas de déclencher l'installation par script).
+   ========================================================= */
+let deferredInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", (e)=>{
+  e.preventDefault();
+  deferredInstallPrompt = e;
+});
+function isStandalone(){
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+function isIOS(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+async function triggerInstall(){
+  if(isStandalone()){ toast("L'application est déjà installée sur cet appareil ✓"); return; }
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    toast(choice.outcome === "accepted" ? "Installation en cours ✓" : "Installation annulée");
+  }else if(isIOS()){
+    alert("Sur iPhone/iPad :\n\n1. Appuyez sur le bouton Partager (le carré avec une flèche) en bas de Safari.\n2. Choisissez « Sur l'écran d'accueil ».\n3. Confirmez avec « Ajouter ».\n\nL'application apparaîtra alors comme une vraie app, avec son icône.");
+  }else{
+    alert("Votre navigateur ne propose pas l'installation automatique pour l'instant.\n\nOuvrez le menu (⋮) de votre navigateur et choisissez « Installer l'application » ou « Ajouter à l'écran d'accueil ».");
+  }
+}
+
+/* =========================================================
    OUTIL 13 — INTERFACE MULTILINGUE
    Traduction de la navigation principale ; les fiches (mêmes
    champs que les documents papier de l'agence) restent dans
@@ -2664,12 +2695,17 @@ routes.home = () => {
         <div class="icon">📲</div>
         <div class="txt"><h3>${t("shareCard")}</h3><p>${t("shareDesc")}</p></div>
       </button>
+      <button class="choice-card" id="goInstall">
+        <div class="icon">⬇️</div>
+        <div class="txt"><h3>Installer l'application</h3><p>Ajouter directement sur cet appareil, sans passer par le menu</p></div>
+      </button>
     </div>
     ${!fbReady ? `<p class="hint" style="text-align:center;margin-top:22px;">⚠️ Mode local (démo) : configure Firebase dans index.html pour synchroniser tous les appareils. Voir README-INSTALLATION.md.</p>` : ""}
   `;
   $("#goAgent").onclick = ()=>{ session.role="agent"; nav("agentHome"); };
   $("#goAdmin").onclick = ()=> nav("adminLogin");
   $("#goShare").onclick = ()=> nav("share");
+  $("#goInstall").onclick = ()=> triggerInstall();
   const heroAv = $("#heroAvatar");
   if(heroAv) heroAv.onclick = openAvatar;
 };
@@ -2756,7 +2792,7 @@ routes.candidatForm = () => {
     ["pere","Père"],["mere","Mère"],["oncle","Oncle"],["tante","Tante"],
     ["frere","Frère"],["soeur","Sœur"],["cousin","Cousin"],["cousine","Cousine"],
     ["beaufrere","Beau-frère"],["bellesoeur","Belle-sœur"],
-    ["ami1","Ami(e) de référence 1"],["ami2","Ami(e) de référence 2"]
+    ["ami1","Ami(e) de référence 1"],["ami2","Ami(e) de référence 2"],["ami3","Ami(e) de référence 3"]
   ];
   mainEl.innerHTML = `
     <form id="candForm">
@@ -2784,39 +2820,6 @@ routes.candidatForm = () => {
               <input type="file" accept="image/*" id="photoFullInputGal" style="display:none;">
               <span class="hint" id="photoFullStatus">Aucune photo</span>
             </div>
-          </div>
-          <div class="field">
-            <label>Galerie de photos supplémentaires (optionnel, jusqu'à 10)</label>
-            <div id="galerieGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="btn-sm" id="galerieCam">📷 Prendre une photo</button>
-              <button type="button" class="btn-sm" id="galerieGal">🖼️ Choisir dans la galerie (plusieurs)</button>
-            </div>
-            <input type="file" accept="image/*" capture="environment" id="galerieCamInput" style="display:none;">
-            <input type="file" accept="image/*" multiple id="galerieGalInput" style="display:none;">
-            <span class="hint" id="galerieStatus">0 / 10 photo(s) ajoutée(s)</span>
-          </div>
-          <div class="field">
-            <label>Photos du passeport (optionnel, jusqu'à 10 — pour couvrir toutes les pages utiles)</label>
-            <div id="passeportGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="btn-sm" id="passeportCam">📷 Prendre une photo</button>
-              <button type="button" class="btn-sm" id="passeportGal">🖼️ Choisir dans la galerie (plusieurs)</button>
-            </div>
-            <input type="file" accept="image/*" capture="environment" id="passeportCamInput" style="display:none;">
-            <input type="file" accept="image/*" multiple id="passeportGalInput" style="display:none;">
-            <span class="hint" id="passeportStatus">0 / 10 photo(s) ajoutée(s)</span>
-          </div>
-          <div class="field">
-            <label>Documents (pièce d'identité, extrait de naissance, diplômes, attestations… — optionnel, jusqu'à 10)</label>
-            <div id="documentsGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="btn-sm" id="documentsCam">📷 Prendre une photo</button>
-              <button type="button" class="btn-sm" id="documentsGal">🖼️ Choisir dans la galerie (plusieurs)</button>
-            </div>
-            <input type="file" accept="image/*" capture="environment" id="documentsCamInput" style="display:none;">
-            <input type="file" accept="image/*" multiple id="documentsGalInput" style="display:none;">
-            <span class="hint" id="documentsStatus">0 / 10 photo(s) ajoutée(s)</span>
           </div>
           <div class="row2">
             <div class="field"><label>Nom</label><input name="nom" required></div>
@@ -2859,6 +2862,17 @@ routes.candidatForm = () => {
             <button type="button" class="btn-sm" id="geoBtn">📍 Activer la géolocalisation</button>
             <span class="hint" id="geoStatus" style="display:block;margin-top:6px;">Non activée</span>
           </div>
+          <div class="field">
+            <label>Galerie de photos supplémentaires (optionnel, jusqu'à 10)</label>
+            <div id="galerieGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-sm" id="galerieCam">📷 Prendre une photo</button>
+              <button type="button" class="btn-sm" id="galerieGal">🖼️ Choisir dans la galerie (plusieurs)</button>
+            </div>
+            <input type="file" accept="image/*" capture="environment" id="galerieCamInput" style="display:none;">
+            <input type="file" accept="image/*" multiple id="galerieGalInput" style="display:none;">
+            <span class="hint" id="galerieStatus">0 / 10 photo(s) ajoutée(s)</span>
+          </div>
         </div>
       </div>
 
@@ -2872,6 +2886,17 @@ routes.candidatForm = () => {
           <div class="row2">
             <div class="field"><label>Type de visa</label><input name="visaType" placeholder="Ex : Travail, Séjour"></div>
             <div class="field"><label>Expiration visa</label><input type="date" name="visaExpiration"></div>
+          </div>
+          <div class="field">
+            <label>Photos du passeport (optionnel, jusqu'à 10 — pour couvrir toutes les pages utiles)</label>
+            <div id="passeportGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-sm" id="passeportCam">📷 Prendre une photo</button>
+              <button type="button" class="btn-sm" id="passeportGal">🖼️ Choisir dans la galerie (plusieurs)</button>
+            </div>
+            <input type="file" accept="image/*" capture="environment" id="passeportCamInput" style="display:none;">
+            <input type="file" accept="image/*" multiple id="passeportGalInput" style="display:none;">
+            <span class="hint" id="passeportStatus">0 / 10 photo(s) ajoutée(s)</span>
           </div>
         </div>
       </div>
@@ -2889,6 +2914,17 @@ routes.candidatForm = () => {
               </div>
             </fieldset>
           `).join("")}
+          <div class="field">
+            <label>Documents (pièce d'identité, extrait de naissance, diplômes, attestations… — optionnel, jusqu'à 10)</label>
+            <div id="documentsGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-sm" id="documentsCam">📷 Prendre une photo</button>
+              <button type="button" class="btn-sm" id="documentsGal">🖼️ Choisir dans la galerie (plusieurs)</button>
+            </div>
+            <input type="file" accept="image/*" capture="environment" id="documentsCamInput" style="display:none;">
+            <input type="file" accept="image/*" multiple id="documentsGalInput" style="display:none;">
+            <span class="hint" id="documentsStatus">0 / 10 photo(s) ajoutée(s)</span>
+          </div>
         </div>
       </div>
 
@@ -3175,10 +3211,18 @@ routes.share = () => {
   let qrMissing = false;
   if(typeof qrcode === "function"){
     try{
-      const qr = qrcode(0, "M");
-      qr.addData(appUrl);
-      qr.make();
-      svg = qr.createSvgTag(6, 16);
+      let built = null;
+      for(let tn=1; tn<=20; tn++){
+        try{
+          const qr = qrcode(tn, "M");
+          qr.addData(appUrl);
+          qr.make();
+          built = qr;
+          break;
+        }catch(inner){ /* taille insuffisante pour ce niveau, on essaie la suivante */ }
+      }
+      if(built){ svg = built.createSvgTag(6, 16); }
+      else{ qrMissing = true; }
     }catch(e){ console.warn("Erreur génération QR:", e); qrMissing = true; }
   }else{
     qrMissing = true;
@@ -4207,7 +4251,7 @@ routes.candidatDetail = async (params) => {
     if(!cand) return;
     const relLabels = {pere:"Père",mere:"Mère",oncle:"Oncle",tante:"Tante",frere:"Frère",soeur:"Sœur",
       cousin:"Cousin",cousine:"Cousine",beaufrere:"Beau-frère",bellesoeur:"Belle-sœur",
-      ami1:"Ami(e) réf. 1",ami2:"Ami(e) réf. 2"};
+      ami1:"Ami(e) réf. 1",ami2:"Ami(e) réf. 2",ami3:"Ami(e) réf. 3"};
     const galerieItems = [...(cand.galerie||[]), ...fichiers.filter(f=>f.categorie==="galerie").map(f=>f.data)];
     const passeportItems = fichiers.filter(f=>f.categorie==="passeport").map(f=>f.data);
     const documentsItems = fichiers.filter(f=>f.categorie==="documents").map(f=>f.data);
