@@ -2031,8 +2031,8 @@ try{
 /* ---------- Stockage local de secours (mode démo / hors-ligne) ---------- */
 const LOCAL_KEY = "shaman_local_db_v1";
 function localDB(){
-  try{ return JSON.parse(localStorage.getItem(LOCAL_KEY)) || {candidats:[], placements:[], journal:[], actualites:[]}; }
-  catch(e){ return {candidats:[], placements:[], journal:[], actualites:[]}; }
+  try{ return JSON.parse(localStorage.getItem(LOCAL_KEY)) || {candidats:[], placements:[], journal:[], actualites:[], employeurs:[]}; }
+  catch(e){ return {candidats:[], placements:[], journal:[], actualites:[], employeurs:[]}; }
 }
 function saveLocalDB(d){ localStorage.setItem(LOCAL_KEY, JSON.stringify(d)); }
 
@@ -2183,6 +2183,35 @@ const DataLayer = {
       saveLocalDB(d);
     }
   },
+  /* ---------- Fichiers/documents d'un employeur (sous-collection) ---------- */
+  async addEmployeurFichier(employeurId, obj){
+    obj.ts = new Date().toISOString();
+    if(fbReady){
+      await authReadyPromise;
+      await addDoc(collection(db,"employeurs",employeurId,"fichiers"), {...obj, ts: serverTimestamp()});
+    }else{
+      const d = localDB();
+      d.employeurFichiers = d.employeurFichiers || {};
+      d.employeurFichiers[employeurId] = d.employeurFichiers[employeurId] || [];
+      d.employeurFichiers[employeurId].push({id:uid(), ...obj});
+      saveLocalDB(d);
+    }
+  },
+  listenEmployeurFichiers(employeurId, cb){
+    if(fbReady){
+      let unsub = ()=>{};
+      let stopped = false;
+      authReadyPromise.then(()=>{
+        if(stopped) return;
+        const q = query(collection(db,"employeurs",employeurId,"fichiers"), orderBy("ts","asc"));
+        unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
+      });
+      return ()=>{ stopped = true; unsub(); };
+    }else{
+      cb(((localDB().employeurFichiers||{})[employeurId]) || []);
+      return ()=>{};
+    }
+  },
   async logJournal(entry){
     entry.ts = new Date().toISOString();
     entry.agent = getAgentName() || (session.role==="admin" ? "Administrateur" : "Agent");
@@ -2268,6 +2297,54 @@ const DataLayer = {
       return ()=>{ stopped = true; unsub(); };
     }else{
       cb(localDB().placements.slice().reverse());
+      return ()=>{};
+    }
+  },
+  /* ---------- Employeurs (fiche entreprise/particulier + profil recherché) ---------- */
+  async addEmployeur(data){
+    data.creeLe = new Date().toISOString();
+    let id;
+    if(fbReady){
+      await authReadyPromise;
+      const ref = await addDoc(collection(db,"employeurs"), {...data, creeLe: serverTimestamp()});
+      id = ref.id;
+    }else{
+      const d = localDB(); id = uid();
+      d.employeurs = d.employeurs || [];
+      d.employeurs.push({id, ...data});
+      saveLocalDB(d);
+    }
+    this.logJournal({type:"employeur", refId:id, label:`Fiche employeur créée : ${data.nomEmployeur||""}`.trim()});
+    return id;
+  },
+  async updateEmployeur(id, patch){
+    if(fbReady){ await authReadyPromise; await updateDoc(doc(db,"employeurs",id), patch); }
+    else{
+      const d = localDB(); d.employeurs = d.employeurs || [];
+      const i = d.employeurs.findIndex(e=>e.id===id);
+      if(i>-1) d.employeurs[i] = {...d.employeurs[i], ...patch};
+      saveLocalDB(d);
+    }
+  },
+  async deleteEmployeur(id){
+    if(fbReady){ await authReadyPromise; await deleteDoc(doc(db,"employeurs",id)); }
+    else{
+      const d = localDB(); d.employeurs = (d.employeurs||[]).filter(e=>e.id!==id);
+      saveLocalDB(d);
+    }
+  },
+  listenEmployeurs(cb){
+    if(fbReady){
+      let unsub = ()=>{};
+      let stopped = false;
+      authReadyPromise.then(()=>{
+        if(stopped) return;
+        const q = query(collection(db,"employeurs"), orderBy("creeLe","desc"));
+        unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
+      });
+      return ()=>{ stopped = true; unsub(); };
+    }else{
+      cb((localDB().employeurs||[]).slice().reverse());
       return ()=>{};
     }
   }
@@ -2728,6 +2805,10 @@ routes.agentHome = () => {
         <div class="icon">🤝</div>
         <div class="txt"><h3>Nouveau placement</h3><p>Enregistrer un employeur, une tâche et un salaire</p></div>
       </button>
+      <button class="choice-card" id="newEmployeur">
+        <div class="icon">🏢</div>
+        <div class="txt"><h3>Nouvel employeur</h3><p>Enregistrer un employeur et le profil recherché</p></div>
+      </button>
       <button class="choice-card" id="myPlacements">
         <div class="icon">🕓</div>
         <div class="txt"><h3>Mes placements</h3><p>Suivre l'état de validation de mes enregistrements</p></div>
@@ -2735,6 +2816,10 @@ routes.agentHome = () => {
       <button class="choice-card" id="agentList">
         <div class="icon">📋</div>
         <div class="txt"><h3>Consulter les fiches</h3><p>Retrouver un(e) candidat(e) déjà inscrit(e)</p></div>
+      </button>
+      <button class="choice-card" id="agentListEmployeurs">
+        <div class="icon">🏬</div>
+        <div class="txt"><h3>Consulter les employeurs</h3><p>Retrouver un employeur déjà enregistré</p></div>
       </button>
       <button class="choice-card" id="agentShare">
         <div class="icon">📲</div>
@@ -2745,8 +2830,10 @@ routes.agentHome = () => {
   if(!agentName){ nav("agentIdentity"); return; }
   $("#newCand").onclick = ()=> nav("candidatForm");
   $("#newPlacement").onclick = ()=> nav("placementForm");
+  $("#newEmployeur").onclick = ()=> nav("employeurForm");
   $("#myPlacements").onclick = ()=> nav("mesPlacements");
   $("#agentList").onclick = ()=> nav("list", {tab:"candidats"});
+  $("#agentListEmployeurs").onclick = ()=> nav("list", {tab:"employeurs"});
   $("#agentShare").onclick = ()=> nav("share");
 
   /* Vérifie en direct que le compte n'a pas été bloqué par l'administrateur */
@@ -3081,6 +3168,185 @@ routes.candidatForm = () => {
   };
 };
 
+/* ---------------- FORMULAIRE EMPLOYEUR ---------------- */
+routes.employeurForm = () => {
+  setTop("Nouvel employeur","Fiche employeur", true);
+  mainEl.innerHTML = `
+    <form id="employeurFormEl">
+      <div class="panel">
+        <div class="head"><h2>Identité de l'employeur</h2><span class="num mono">EMPLOYEUR</span></div>
+        <div class="body">
+          <div class="field"><label>Type d'employeur</label>
+            <select name="typeEmployeur">
+              <option value="">—</option><option>Particulier</option><option>Entreprise</option>
+            </select>
+          </div>
+          <div class="field"><label>Nom / Raison sociale</label><input name="nomEmployeur" required></div>
+          <div class="row2">
+            <div class="field"><label>Nom du contact</label><input name="contactNom"></div>
+            <div class="field"><label>Fonction du contact</label><input name="contactFonction" placeholder="Ex : Gérant, DRH, Propriétaire…"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Téléphone</label><input name="telephone" required></div>
+            <div class="field"><label>Email</label><input name="email" type="email"></div>
+          </div>
+          <div class="field"><label>Domicile / Adresse</label><input name="adresse"></div>
+          <div class="row2">
+            <div class="field"><label>Pays</label><input name="pays" placeholder="Ex : Côte d'Ivoire" list="paysListEmp"></div>
+            <div class="field"><label>Ville</label><input name="ville"></div>
+          </div>
+          <datalist id="paysListEmp">
+            <option>Côte d'Ivoire</option><option>Sénégal</option><option>Mali</option><option>Burkina Faso</option>
+            <option>Guinée</option><option>Togo</option><option>Bénin</option><option>Maroc</option><option>France</option>
+            <option>Liban</option><option>Émirats arabes unis</option><option>Arabie saoudite</option>
+          </datalist>
+          <div class="field"><label>Secteur d'activité</label><input name="secteurActivite" placeholder="Ex : Restauration, BTP, Ménage à domicile…"></div>
+          <div class="field">
+            <label>Géolocalisation (avec le consentement de l'employeur)</label>
+            <button type="button" class="btn-sm" id="geoBtnEmp">📍 Activer la géolocalisation</button>
+            <span class="hint" id="geoStatusEmp" style="display:block;margin-top:6px;">Non activée</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="head"><h2>Profil de l'employé(e) recherché(e)</h2></div>
+        <div class="body">
+          <div class="row2">
+            <div class="field"><label>Poste recherché</label><input name="posteRecherche" placeholder="Ex : Ménagère, Chauffeur, Cuisinier…" required></div>
+            <div class="field"><label>Nombre de postes à pourvoir</label><input name="nbPostes" type="number" min="1" value="1"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Type de contrat</label>
+              <select name="typeContrat">
+                <option value="">—</option><option>CDI</option><option>CDD</option><option>Saisonnier</option><option>Journalier</option><option>Autre</option>
+              </select>
+            </div>
+            <div class="field"><label>Niveau d'étude souhaité</label>
+              <select name="niveauSouhaite">
+                <option value="">—</option><option>Aucun</option><option>Primaire</option><option>Secondaire</option><option>Supérieur</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Expérience requise</label><input name="experienceRequise" placeholder="Ex : 2 ans minimum"></div>
+          <div class="field"><label>Langue(s) requise(s)</label><input name="languesRequises"></div>
+          <div class="field"><label>Compétences recherchées</label><textarea name="competencesRecherchees"></textarea></div>
+          <div class="row2">
+            <div class="field"><label>Salaire proposé</label><input name="salaireProp"></div>
+            <div class="field"><label>Devise</label>
+              <select name="devise">${DEVISES.map(d=>`<option>${d}</option>`).join("")}</select>
+            </div>
+          </div>
+          <div class="field"><label>Avantages proposés</label>
+            <div class="checklist">
+              <label><input type="checkbox" name="avLogement"> Logement fourni</label>
+              <label><input type="checkbox" name="avNourriture"> Nourriture fournie</label>
+              <label><input type="checkbox" name="avTransport"> Transport fourni</label>
+            </div>
+          </div>
+          <div class="field"><label>Date de besoin</label><input type="date" name="dateBesoin"></div>
+          <div class="field"><label>Description du poste</label><textarea name="descriptionPoste"></textarea></div>
+          <div class="field">
+            <label>Documents (registre de commerce, CNI du contact, autres… — optionnel, jusqu'à 10)</label>
+            <div id="empDocGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-sm" id="empDocCam">📷 Prendre une photo</button>
+              <button type="button" class="btn-sm" id="empDocGal">🖼️ Choisir dans la galerie (plusieurs)</button>
+            </div>
+            <input type="file" accept="image/*" capture="environment" id="empDocCamInput" style="display:none;">
+            <input type="file" accept="image/*" multiple id="empDocGalInput" style="display:none;">
+            <span class="hint" id="empDocStatus">0 / 10 photo(s) ajoutée(s)</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="employeurErr" class="err"></div>
+      <button class="btn stamp" type="submit" id="submitEmployeur">Enregistrer l'employeur</button>
+    </form>
+  `;
+
+  let existingEmployeurs = [];
+  DataLayer.listenEmployeurs(list=>{ existingEmployeurs = list; });
+
+  /* ---- Documents (groupe photos multiples, même logique que la fiche candidat) ---- */
+  function makeEmpPhotoGroup(prefix, max, w, q){
+    const state = { items: [] };
+    function render(){
+      const grid = $("#"+prefix+"Grid");
+      if(!grid) return;
+      grid.innerHTML = state.items.map((it,i)=>`
+        <div style="position:relative;width:56px;height:56px;">
+          <img src="${it}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;border:1px solid var(--line);">
+          <button type="button" data-rm="${i}" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--stamp);color:#fff;border:none;font-size:12px;cursor:pointer;">✖</button>
+        </div>
+      `).join("");
+      grid.querySelectorAll("[data-rm]").forEach(b=> b.onclick = ()=>{ state.items.splice(+b.dataset.rm,1); render(); });
+      const status = $("#"+prefix+"Status");
+      if(status) status.textContent = `${state.items.length} / ${max} photo(s) ajoutée(s)`;
+    }
+    async function addFile(f){
+      if(!f) return;
+      if(state.items.length >= max){ toast("Maximum "+max+" photos atteint"); return; }
+      const status = $("#"+prefix+"Status");
+      if(status) status.textContent = "Compression…";
+      const data = await compressImage(f, w, q);
+      state.items.push(data);
+      render();
+    }
+    const camBtn = $("#"+prefix+"Cam"), galBtn = $("#"+prefix+"Gal");
+    const camInput = $("#"+prefix+"CamInput"), galInput = $("#"+prefix+"GalInput");
+    if(camBtn) camBtn.onclick = ()=> camInput.click();
+    if(galBtn) galBtn.onclick = ()=> galInput.click();
+    if(camInput) camInput.onchange = async (e)=>{ await addFile(e.target.files[0]); e.target.value=""; };
+    if(galInput) galInput.onchange = async (e)=>{
+      for(const f of Array.from(e.target.files)) await addFile(f);
+      e.target.value = "";
+    };
+    render();
+    return state;
+  }
+  const empDocState = makeEmpPhotoGroup("empDoc", 10, 720, 0.55);
+
+  /* ---- Géolocalisation ---- */
+  let geoDataEmp = null;
+  $("#geoBtnEmp").onclick = async ()=>{
+    $("#geoStatusEmp").textContent = "Localisation en cours… (autorisez l'accès si demandé)";
+    geoDataEmp = await captureGeo();
+    if(geoDataEmp){
+      $("#geoStatusEmp").innerHTML = `Position enregistrée ✓ ${geoBadgeHTML(geoDataEmp.lat, geoDataEmp.lng)}`;
+    }else{
+      $("#geoStatusEmp").textContent = "Localisation refusée ou indisponible.";
+    }
+  };
+
+  $("#employeurFormEl").onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const data = Object.fromEntries(fd.entries());
+    const dup = existingEmployeurs.find(x=> x.telephone && data.telephone && x.telephone.trim()===data.telephone.trim());
+    if(dup && !e.target.dataset.dupConfirmed){
+      const proceed = confirm(`⚠️ Un employeur avec ce même téléphone existe déjà : ${dup.nomEmployeur||""}.\nContinuer quand même et créer une nouvelle fiche ?`);
+      if(!proceed) return;
+      e.target.dataset.dupConfirmed = "1";
+    }
+    const btn = $("#submitEmployeur"); btn.disabled = true; btn.textContent = "Enregistrement…";
+    data.avLogement = e.target.avLogement.checked;
+    data.avNourriture = e.target.avNourriture.checked;
+    data.avTransport = e.target.avTransport.checked;
+    data.agentNom = getAgentName() || (session.role==="admin"?"Administrateur":session.role==="supervisor"?`Superviseur (${session.region})`:"Agent");
+    if(geoDataEmp){ data.geoLat = geoDataEmp.lat; data.geoLng = geoDataEmp.lng; }
+    try{
+      const id = await DataLayer.addEmployeur(data);
+      for(const d of empDocState.items){ await DataLayer.addEmployeurFichier(id, {categorie:"documents", label:"Document", data:d}); }
+      toast("Fiche employeur enregistrée ✓");
+      nav("employeurDetail", {id});
+    }catch(err){
+      $("#employeurErr").textContent = "Erreur d'enregistrement : " + err.message;
+      btn.disabled = false; btn.textContent = "Enregistrer l'employeur";
+    }
+  };
+};
+
 /* ---------------- FORMULAIRE PLACEMENT ---------------- */
 routes.placementForm = async (params) => {
   const editId = params.editId || null;
@@ -3088,8 +3354,10 @@ routes.placementForm = async (params) => {
   mainEl.innerHTML = `<div class="center-msg">Chargement des candidat(e)s…</div>`;
   let candidats = [];
   let places = [];
+  let employeurs = [];
   let existing = null;
   DataLayer.listenCandidats(list => { candidats = list; tryBuild(); });
+  DataLayer.listenEmployeurs(list => { employeurs = list; tryBuild(); });
   if(editId){
     DataLayer.listenPlacements(list => { places = list; existing = list.find(p=>p.id===editId); tryBuild(); });
   }
@@ -3119,6 +3387,15 @@ routes.placementForm = async (params) => {
         <div class="panel">
           <div class="head"><h2>Employeur &amp; tâche</h2></div>
           <div class="body">
+            ${employeurs.length ? `
+            <div class="field"><label>Choisir un employeur enregistré (optionnel)</label>
+              <select id="employeurPicker">
+                <option value="">— Saisie manuelle —</option>
+                ${employeurs.map(emp=>`<option value="${emp.id}" ${(v.employeurId||params.employeurId)===emp.id?"selected":""}>${emp.nomEmployeur||""} — ${emp.telephone||""}</option>`).join("")}
+              </select>
+              <p class="hint">Employeur introuvable ? <a href="#employeurForm">Créer sa fiche d'abord</a>.</p>
+            </div>` : ""}
+            <input type="hidden" name="employeurId" id="employeurIdField" value="${v.employeurId||params.employeurId||""}">
             <div class="field"><label>Employeur</label><input name="employeur" required value="${v.employeur||""}"></div>
             <div class="field"><label>Contact employeur</label><input name="employeurContact" value="${v.employeurContact||""}"></div>
             <div class="field"><label>Tâche</label><input name="tache" placeholder="Ex : Ménagère, Nounou, Cuisinière…" required value="${v.tache||""}"></div>
@@ -3165,6 +3442,19 @@ routes.placementForm = async (params) => {
         <button class="btn stamp" type="submit" id="submitPlace">${editId ? "Renvoyer pour validation" : "Enregistrer le placement"}</button>
       </form>
     `;
+    const empPicker = $("#employeurPicker");
+    if(empPicker){
+      empPicker.onchange = ()=>{
+        const emp = employeurs.find(x=>x.id===empPicker.value);
+        $("#employeurIdField").value = emp ? emp.id : "";
+        if(emp){
+          mainEl.querySelector('[name="employeur"]').value = emp.nomEmployeur||"";
+          mainEl.querySelector('[name="employeurContact"]').value = emp.telephone||"";
+          if(emp.pays) mainEl.querySelector('[name="paysEmployeur"]').value = emp.pays;
+        }
+      };
+      if(params.employeurId && !editId){ empPicker.value = params.employeurId; empPicker.onchange(); }
+    }
     $("#placeForm").onsubmit = async (e)=>{
       e.preventDefault();
       const btn = $("#submitPlace"); btn.disabled = true; btn.textContent = "Enregistrement…";
@@ -3381,6 +3671,10 @@ routes.adminHome = () => {
           <div class="icon">🤝</div>
           <div class="txt"><h3>Nouveau placement</h3><p>Créer un placement (activé immédiatement)</p></div>
         </button>
+        <button class="choice-card" id="newEmployeurAdmin">
+          <div class="icon">🏢</div>
+          <div class="txt"><h3>Nouvel employeur</h3><p>Enregistrer un employeur et le profil recherché</p></div>
+        </button>
         <button class="choice-card" id="toCands">
           <div class="icon">📋</div>
           <div class="txt"><h3>Tous les candidats</h3><p>Rechercher, consulter et gérer les fiches</p></div>
@@ -3388,6 +3682,10 @@ routes.adminHome = () => {
         <button class="choice-card" id="toPlace">
           <div class="icon">🗂️</div>
           <div class="txt"><h3>Tous les placements</h3><p>Suivre l'état de chaque placement${commissionTotal>0?` · Commissions : ${commissionTotal.toLocaleString("fr-FR")}`:""}</p></div>
+        </button>
+        <button class="choice-card" id="toEmployeurs">
+          <div class="icon">🏬</div>
+          <div class="txt"><h3>Tous les employeurs</h3><p>Rechercher, consulter et gérer les fiches employeurs</p></div>
         </button>
         <button class="choice-card" id="toAgents">
           <div class="icon">🧑‍💼</div>
@@ -3425,9 +3723,11 @@ routes.adminHome = () => {
     `;
     $("#newCandAdmin").onclick = ()=> nav("candidatForm");
     $("#newPlacementAdmin").onclick = ()=> nav("placementForm");
+    $("#newEmployeurAdmin").onclick = ()=> nav("employeurForm");
     $("#toAgents").onclick = ()=> nav("agentsAdmin");
     $("#toCands").onclick = ()=> nav("list",{tab:"candidats"});
     $("#toPlace").onclick = ()=> nav("list",{tab:"placements"});
+    $("#toEmployeurs").onclick = ()=> nav("list",{tab:"employeurs"});
     $("#toOutils").onclick = ()=> nav("outils");
     $("#toOutils2").onclick = ()=> nav("outils2");
     $("#toValidation").onclick = ()=> nav("validation");
@@ -4165,9 +4465,10 @@ routes.list = (params) => {
   setTop(session.role==="admin" ? "Espace Administrateur" : "Espace Agent", "Toutes les fiches", true);
   mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
 
-  let cands=[], places=[];
+  let cands=[], places=[], employeurs=[];
   DataLayer.listenCandidats(list=>{ cands= session.region ? list.filter(c=>c.pays===session.region) : list; draw(); });
   DataLayer.listenPlacements(list=>{ places= session.region ? list.filter(p=> cands.some(c=>c.id===p.candidatId)) : list; draw(); });
+  DataLayer.listenEmployeurs(list=>{ employeurs= session.region ? list.filter(e=>e.pays===session.region) : list; draw(); });
 
   function draw(){
     const niveaux = [...new Set(cands.map(c=>c.niveauEtude).filter(Boolean))];
@@ -4175,6 +4476,7 @@ routes.list = (params) => {
       <div class="tabs">
         <button class="${tab==='candidats'?'on':''}" id="tabC">Candidats (${cands.length})</button>
         <button class="${tab==='placements'?'on':''}" id="tabP">Placements (${places.length})</button>
+        <button class="${tab==='employeurs'?'on':''}" id="tabE">Employeurs (${employeurs.length})</button>
       </div>
       <div class="searchbar"><input id="q" placeholder="Rechercher un nom, un contact…"></div>
       ${tab==="candidats" ? `
@@ -4185,14 +4487,15 @@ routes.list = (params) => {
         <div class="field" style="margin-bottom:0;"><label>Statut</label>
           <select id="fStatut"><option value="">Tous</option><option>Disponible</option><option>Placé(e)</option></select>
         </div>
-      </div>` : `
+      </div>` : tab==="placements" ? `
       <div class="field" style="margin-bottom:14px;"><label>Statut</label>
         <select id="fStatutP"><option value="">Tous</option><option>Actif</option><option>Terminé</option></select>
-      </div>`}
+      </div>` : ""}
       <div id="listBody"></div>
     `;
     $("#tabC").onclick = ()=> nav("list",{tab:"candidats"});
     $("#tabP").onclick = ()=> nav("list",{tab:"placements"});
+    $("#tabE").onclick = ()=> nav("list",{tab:"employeurs"});
     const body = $("#listBody");
     function renderList(){
       const s = ($("#q").value||"").trim().toLowerCase();
@@ -4213,7 +4516,7 @@ routes.list = (params) => {
             <span class="badge dispo">${c.statut||"Disponible"}</span>
           </div>`).join("") : `<div class="center-msg">Aucune fiche ne correspond.</div>`;
         body.querySelectorAll(".rowitem").forEach(el=> el.onclick = ()=> nav("candidatDetail",{id:el.dataset.id}));
-      }else{
+      }else if(tab === "placements"){
         const fStatutP = $("#fStatutP") ? $("#fStatutP").value : "";
         let rows = places.filter(p=>!s || `${p.candidatNom} ${p.employeur}`.toLowerCase().includes(s));
         if(fStatutP) rows = rows.filter(p=>p.statut===fStatutP);
@@ -4227,6 +4530,18 @@ routes.list = (params) => {
             <span class="badge ${placeBadgeClass(p.statut)}">${p.statut||""}</span>
           </div>`).join("") : `<div class="center-msg">Aucun placement ne correspond.</div>`;
         body.querySelectorAll(".rowitem").forEach(el=> el.onclick = ()=> nav("placementDetail",{id:el.dataset.id}));
+      }else{
+        let rows = employeurs.filter(e=>!s || `${e.nomEmployeur} ${e.telephone} ${e.posteRecherche||""}`.toLowerCase().includes(s));
+        body.innerHTML = rows.length ? rows.map(e=>`
+          <div class="rowitem" data-id="${e.id}">
+            <div class="av">🏢</div>
+            <div class="info">
+              <div class="n1">${e.nomEmployeur||""}</div>
+              <div class="n2">${e.telephone||"—"} · ${e.posteRecherche||"Poste non précisé"}</div>
+            </div>
+            <span class="badge dispo">${e.typeEmployeur||"—"}</span>
+          </div>`).join("") : `<div class="center-msg">Aucun employeur ne correspond.</div>`;
+        body.querySelectorAll(".rowitem").forEach(el=> el.onclick = ()=> nav("employeurDetail",{id:el.dataset.id}));
       }
     }
     renderList();
@@ -4425,6 +4740,75 @@ routes.placementDetail = async (params) => {
     };
     $("#printReceipt").onclick = ()=> window.print();
   });
+};
+
+/* ---------------- DÉTAIL EMPLOYEUR ---------------- */
+routes.employeurDetail = async (params) => {
+  setTop("Fiche employeur","Détail", true);
+  mainEl.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  let emp=null, places=[], fichiers=[];
+  DataLayer.listenEmployeurs(list=>{ emp = list.find(e=>e.id===params.id); draw(); });
+  DataLayer.listenPlacements(list=>{ places = list.filter(p=> p.employeurId===params.id || (emp && p.employeur===emp.nomEmployeur)); draw(); });
+  DataLayer.listenEmployeurFichiers(params.id, list=>{ fichiers = list; draw(); });
+
+  function draw(){
+    if(!emp) return;
+    const docItems = fichiers.filter(f=>f.categorie==="documents").map(f=>f.data);
+    const avantages = [emp.avLogement?"Logement":"", emp.avNourriture?"Nourriture":"", emp.avTransport?"Transport":""].filter(Boolean).join(", ");
+    mainEl.innerHTML = `
+      <div class="panel" id="empPrintArea">
+        <div class="head"><h2>${emp.nomEmployeur||""}</h2><span class="badge dispo">${emp.typeEmployeur||"—"}</span></div>
+        <div class="body">
+          <div class="detail-grid">
+            <div><div class="k">Contact</div><div class="v">${emp.contactNom||"—"} ${emp.contactFonction?`(${emp.contactFonction})`:""}</div></div>
+            <div><div class="k">Téléphone</div><div class="v">${emp.telephone||"—"}${contactActionsHTML(emp.telephone)}</div></div>
+            <div><div class="k">Email</div><div class="v">${emp.email||"—"}</div></div>
+            <div><div class="k">Adresse</div><div class="v">${emp.adresse||"—"}</div></div>
+            <div><div class="k">Pays / Ville</div><div class="v">${emp.pays||"—"} / ${emp.ville||"—"}</div></div>
+            <div><div class="k">Secteur d'activité</div><div class="v">${emp.secteurActivite||"—"}</div></div>
+            ${emp.geoLat!=null ? `<div><div class="k">Localisation</div><div class="v">${geoBadgeHTML(emp.geoLat,emp.geoLng)}</div></div>` : ""}
+          </div>
+          <div class="section-title">Profil de l'employé(e) recherché(e)</div>
+          <div class="detail-grid">
+            <div><div class="k">Poste</div><div class="v">${emp.posteRecherche||"—"}</div></div>
+            <div><div class="k">Postes à pourvoir</div><div class="v">${emp.nbPostes||"1"}</div></div>
+            <div><div class="k">Type de contrat</div><div class="v">${emp.typeContrat||"—"}</div></div>
+            <div><div class="k">Niveau souhaité</div><div class="v">${emp.niveauSouhaite||"—"}</div></div>
+            <div><div class="k">Expérience requise</div><div class="v">${emp.experienceRequise||"—"}</div></div>
+            <div><div class="k">Langue(s) requise(s)</div><div class="v">${emp.languesRequises||"—"}</div></div>
+            <div><div class="k">Salaire proposé</div><div class="v">${fmtMoney(emp.salaireProp,emp.devise)}</div></div>
+            <div><div class="k">Avantages</div><div class="v">${avantages||"—"}</div></div>
+            <div><div class="k">Date de besoin</div><div class="v">${emp.dateBesoin||"—"}</div></div>
+          </div>
+          ${emp.competencesRecherchees?`<div class="section-title">Compétences recherchées</div><p style="font-size:13.5px;">${emp.competencesRecherchees}</p>`:""}
+          ${emp.descriptionPoste?`<div class="section-title">Description du poste</div><p style="font-size:13.5px;">${emp.descriptionPoste}</p>`:""}
+          ${docItems.length ? `
+          <div class="section-title">Documents (${docItems.length})</div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
+            ${docItems.map(src=>`<img src="${src}" style="width:64px;height:64px;object-fit:cover;border-radius:4px;border:1px solid var(--line);cursor:pointer;" class="empDocThumb">`).join("")}
+          </div>` : ""}
+          <div class="section-title">Enregistré par</div>
+          <p style="font-size:13px;color:var(--ink-2);">🧑‍💼 ${emp.agentNom||"—"} · ${fmtDate(emp.creeLe)}</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="head"><h2>Placements liés</h2></div>
+        <div class="body">
+          ${places.length ? places.map(p=>`
+            <div class="rowitem" style="cursor:default;">
+              <div class="av">🤝</div>
+              <div class="info"><div class="n1">${p.candidatNom||"—"}</div><div class="n2">${p.tache||""} · ${p.salaire||""}</div></div>
+              <span class="badge ${placeBadgeClass(p.statut)}">${p.statut}</span>
+            </div>`).join("") : `<p class="hint">Aucun placement enregistré pour cet employeur.</p>`}
+          <button class="btn ghost" id="newPlaceForEmp" style="margin-top:8px;">+ Nouveau placement pour cet employeur</button>
+        </div>
+      </div>
+      <button class="btn ghost" id="printEmpDossier" style="margin-bottom:16px;">🖨️ Imprimer le dossier complet</button>
+    `;
+    $("#newPlaceForEmp").onclick = ()=> nav("placementForm",{employeurId:emp.id});
+    mainEl.querySelectorAll(".empDocThumb").forEach(img=> img.onclick = ()=> openImage(img.src));
+    $("#printEmpDossier").onclick = ()=> window.print();
+  }
 };
 
 /* ---- Photo de profil : plein écran au clic, retour en un clic ---- */

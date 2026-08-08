@@ -199,6 +199,11 @@ même base Firebase déjà en place.
   appréciations (agent / employeur / employé), imprimable à tout moment.
 - **Comptes agents avec téléphone** : chaque agent peut renseigner son
   numéro, visible et cliquable par l'administrateur.
+- **Gestion des employeurs** : une fiche employeur complète (identité,
+  contact, secteur d'activité, documents) avec le profil détaillé du poste
+  recherché (type de contrat, niveau d'étude, expérience, langues, salaire,
+  avantages…). Les agents comme l'administrateur peuvent créer, consulter et
+  gérer ces fiches, et les relier directement à un placement.
 
 ## Besoin d'aide ?
 
