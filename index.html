@@ -3134,20 +3134,24 @@ routes.candidatForm = () => {
             </div>
             <div class="field"><label>Nombre d'enfants</label><input name="nbEnfants" type="number" min="0"></div>
           </div>
-          <div class="row2">
-            <div class="field"><label>Contact</label><input name="contact" required></div>
-            <div class="field"><label>Domicile</label><input name="domicile"></div>
+          <div class="field">
+            <label>Contact</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <span id="contactDial" class="mono" style="flex:0 0 auto; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--panel-2, #f2ece0); font-weight:600;">+225</span>
+              <input name="contact" required style="flex:1;">
+            </div>
           </div>
-          <div class="row2">
-            <div class="field"><label>Pays</label><select name="pays">${countryOptionsHTML("Côte d'Ivoire")}</select></div>
-            <div class="field"><label>Ville</label><input name="ville"></div>
-          </div>
-          <div class="field"><label>Nationalité</label><input name="nationalite" placeholder="Ex : Ivoirienne"></div>
           <div class="field">
             <label>Géolocalisation (avec le consentement du/de la candidat(e))</label>
             <button type="button" class="btn-sm" id="geoBtn">📍 Activer la géolocalisation</button>
             <span class="hint" id="geoStatus" style="display:block;margin-top:6px;">Non activée</span>
           </div>
+          <div class="row2">
+            <div class="field"><label>Pays</label><select name="pays" id="paysSelect">${countryOptionsHTML("Côte d'Ivoire")}</select></div>
+            <div class="field"><label>Ville</label><input name="ville"></div>
+          </div>
+          <div class="field"><label>Domicile</label><input name="domicile"></div>
+          <div class="field"><label>Nationalité</label><input name="nationalite" placeholder="Ex : Ivoirienne"></div>
           <div class="field">
             <label>Galerie de photos supplémentaires (optionnel, jusqu'à 10)</label>
             <div id="galerieGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
@@ -3320,6 +3324,13 @@ routes.candidatForm = () => {
 
   /* ---- Géolocalisation ---- */
   let geoData = null;
+  const paysSelectEl = $("#paysSelect");
+  const contactDialEl = $("#contactDial");
+  if(paysSelectEl && contactDialEl){
+    const updateDial = ()=>{ contactDialEl.textContent = DIAL_BY_COUNTRY[paysSelectEl.value] || "+225"; };
+    paysSelectEl.onchange = updateDial;
+    updateDial();
+  }
   $("#geoBtn").onclick = async ()=>{
     $("#geoStatus").textContent = "Localisation en cours… (autorisez l'accès si demandé)";
     geoData = await captureGeo();
@@ -3385,21 +3396,25 @@ routes.employeurForm = () => {
             <div class="field"><label>Nom du contact</label><input name="contactNom"></div>
             <div class="field"><label>Fonction du contact</label><input name="contactFonction" placeholder="Ex : Gérant, DRH, Propriétaire…"></div>
           </div>
-          <div class="row2">
-            <div class="field"><label>Téléphone</label><input name="telephone" required></div>
-            <div class="field"><label>Email</label><input name="email" type="email"></div>
+          <div class="field">
+            <label>Téléphone</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <span id="telDialEmp" class="mono" style="flex:0 0 auto; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--panel-2, #f2ece0); font-weight:600;">+225</span>
+              <input name="telephone" required style="flex:1;">
+            </div>
           </div>
-          <div class="field"><label>Domicile / Adresse</label><input name="adresse"></div>
-          <div class="row2">
-            <div class="field"><label>Pays</label><select name="pays">${countryOptionsHTML("Côte d'Ivoire")}</select></div>
-            <div class="field"><label>Ville</label><input name="ville"></div>
-          </div>
-          <div class="field"><label>Secteur d'activité</label><input name="secteurActivite" placeholder="Ex : Restauration, BTP, Ménage à domicile…"></div>
           <div class="field">
             <label>Géolocalisation (avec le consentement de l'employeur)</label>
             <button type="button" class="btn-sm" id="geoBtnEmp">📍 Activer la géolocalisation</button>
             <span class="hint" id="geoStatusEmp" style="display:block;margin-top:6px;">Non activée</span>
           </div>
+          <div class="row2">
+            <div class="field"><label>Pays</label><select name="pays" id="paysSelectEmp">${countryOptionsHTML("Côte d'Ivoire")}</select></div>
+            <div class="field"><label>Ville</label><input name="ville"></div>
+          </div>
+          <div class="field"><label>Email</label><input name="email" type="email"></div>
+          <div class="field"><label>Domicile / Adresse</label><input name="adresse"></div>
+          <div class="field"><label>Secteur d'activité</label><input name="secteurActivite" placeholder="Ex : Restauration, BTP, Ménage à domicile…"></div>
           <div class="field">
             <label>Documents (registre de commerce, CNI du contact, autres… — optionnel, jusqu'à 10)</label>
             <div id="empDocGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
@@ -3503,6 +3518,13 @@ routes.employeurForm = () => {
 
   /* ---- Géolocalisation ---- */
   let geoDataEmp = null;
+  const paysSelectEmpEl = $("#paysSelectEmp");
+  const telDialEmpEl = $("#telDialEmp");
+  if(paysSelectEmpEl && telDialEmpEl){
+    const updateDialEmp = ()=>{ telDialEmpEl.textContent = DIAL_BY_COUNTRY[paysSelectEmpEl.value] || "+225"; };
+    paysSelectEmpEl.onchange = updateDialEmp;
+    updateDialEmp();
+  }
   $("#geoBtnEmp").onclick = async ()=>{
     $("#geoStatusEmp").textContent = "Localisation en cours… (autorisez l'accès si demandé)";
     geoDataEmp = await captureGeo();
