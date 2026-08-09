@@ -2445,6 +2445,209 @@ function captureGeo(){
     );
   });
 }
+const COUNTRIES = [
+  ['Afghanistan','+93'],
+  ['Afrique du Sud','+27'],
+  ['Albanie','+355'],
+  ['Algérie','+213'],
+  ['Allemagne','+49'],
+  ['Andorre','+376'],
+  ['Angola','+244'],
+  ['Arabie saoudite','+966'],
+  ['Argentine','+54'],
+  ['Arménie','+374'],
+  ['Australie','+61'],
+  ['Autriche','+43'],
+  ['Azerbaïdjan','+994'],
+  ['Bahamas','+1242'],
+  ['Bahreïn','+973'],
+  ['Bangladesh','+880'],
+  ['Barbade','+1246'],
+  ['Belgique','+32'],
+  ['Belize','+501'],
+  ['Bhoutan','+975'],
+  ['Birmanie (Myanmar)','+95'],
+  ['Biélorussie','+375'],
+  ['Bolivie','+591'],
+  ['Bosnie-Herzégovine','+387'],
+  ['Botswana','+267'],
+  ['Brunei','+673'],
+  ['Brésil','+55'],
+  ['Bulgarie','+359'],
+  ['Burkina Faso','+226'],
+  ['Burundi','+257'],
+  ['Bénin','+229'],
+  ['Cambodge','+855'],
+  ['Cameroun','+237'],
+  ['Canada','+1'],
+  ['Cap-Vert','+238'],
+  ['Chili','+56'],
+  ['Chine','+86'],
+  ['Chypre','+357'],
+  ['Colombie','+57'],
+  ['Comores','+269'],
+  ['Congo-Brazzaville','+242'],
+  ['Congo-Kinshasa (RDC)','+243'],
+  ['Corée du Nord','+850'],
+  ['Corée du Sud','+82'],
+  ['Costa Rica','+506'],
+  ['Croatie','+385'],
+  ['Cuba','+53'],
+  ['Côte d\'Ivoire','+225'],
+  ['Danemark','+45'],
+  ['Djibouti','+253'],
+  ['Dominique','+1767'],
+  ['Espagne','+34'],
+  ['Estonie','+372'],
+  ['Eswatini','+268'],
+  ['Fidji','+679'],
+  ['Finlande','+358'],
+  ['France','+33'],
+  ['Gabon','+241'],
+  ['Gambie','+220'],
+  ['Ghana','+233'],
+  ['Grenade','+1473'],
+  ['Grèce','+30'],
+  ['Guatemala','+502'],
+  ['Guinée','+224'],
+  ['Guinée équatoriale','+240'],
+  ['Guinée-Bissau','+245'],
+  ['Guyana','+592'],
+  ['Géorgie','+995'],
+  ['Haïti','+509'],
+  ['Honduras','+504'],
+  ['Hongrie','+36'],
+  ['Inde','+91'],
+  ['Indonésie','+62'],
+  ['Irak','+964'],
+  ['Iran','+98'],
+  ['Irlande','+353'],
+  ['Islande','+354'],
+  ['Israël','+972'],
+  ['Italie','+39'],
+  ['Jamaïque','+1876'],
+  ['Japon','+81'],
+  ['Jordanie','+962'],
+  ['Kazakhstan','+7'],
+  ['Kenya','+254'],
+  ['Kirghizistan','+996'],
+  ['Kiribati','+686'],
+  ['Kosovo','+383'],
+  ['Koweït','+965'],
+  ['Laos','+856'],
+  ['Lesotho','+266'],
+  ['Lettonie','+371'],
+  ['Liban','+961'],
+  ['Liberia','+231'],
+  ['Libye','+218'],
+  ['Liechtenstein','+423'],
+  ['Lituanie','+370'],
+  ['Luxembourg','+352'],
+  ['Macédoine du Nord','+389'],
+  ['Madagascar','+261'],
+  ['Malaisie','+60'],
+  ['Malawi','+265'],
+  ['Maldives','+960'],
+  ['Mali','+223'],
+  ['Malte','+356'],
+  ['Maroc','+212'],
+  ['Maurice','+230'],
+  ['Mauritanie','+222'],
+  ['Mexique','+52'],
+  ['Micronésie','+691'],
+  ['Moldavie','+373'],
+  ['Monaco','+377'],
+  ['Mongolie','+976'],
+  ['Monténégro','+382'],
+  ['Mozambique','+258'],
+  ['Namibie','+264'],
+  ['Nauru','+674'],
+  ['Nicaragua','+505'],
+  ['Niger','+227'],
+  ['Nigeria','+234'],
+  ['Norvège','+47'],
+  ['Nouvelle-Zélande','+64'],
+  ['Népal','+977'],
+  ['Oman','+968'],
+  ['Ouganda','+256'],
+  ['Ouzbékistan','+998'],
+  ['Pakistan','+92'],
+  ['Palaos','+680'],
+  ['Palestine','+970'],
+  ['Panama','+507'],
+  ['Papouasie-Nouvelle-Guinée','+675'],
+  ['Paraguay','+595'],
+  ['Pays-Bas','+31'],
+  ['Philippines','+63'],
+  ['Pologne','+48'],
+  ['Portugal','+351'],
+  ['Pérou','+51'],
+  ['Qatar','+974'],
+  ['Roumanie','+40'],
+  ['Royaume-Uni','+44'],
+  ['Russie','+7'],
+  ['Rwanda','+250'],
+  ['République centrafricaine','+236'],
+  ['République dominicaine','+1809'],
+  ['République tchèque (Tchéquie)','+420'],
+  ['Saint-Kitts-et-Nevis','+1869'],
+  ['Saint-Marin','+378'],
+  ['Saint-Vincent-et-les-Grenadines','+1784'],
+  ['Sainte-Lucie','+1758'],
+  ['Salvador','+503'],
+  ['Samoa','+685'],
+  ['Sao Tomé-et-Principe','+239'],
+  ['Serbie','+381'],
+  ['Seychelles','+248'],
+  ['Sierra Leone','+232'],
+  ['Singapour','+65'],
+  ['Slovaquie','+421'],
+  ['Slovénie','+386'],
+  ['Somalie','+252'],
+  ['Soudan','+249'],
+  ['Soudan du Sud','+211'],
+  ['Sri Lanka','+94'],
+  ['Suisse','+41'],
+  ['Suriname','+597'],
+  ['Suède','+46'],
+  ['Syrie','+963'],
+  ['Sénégal','+221'],
+  ['Tadjikistan','+992'],
+  ['Tanzanie','+255'],
+  ['Tchad','+235'],
+  ['Thaïlande','+66'],
+  ['Timor oriental','+670'],
+  ['Togo','+228'],
+  ['Tonga','+676'],
+  ['Trinité-et-Tobago','+1868'],
+  ['Tunisie','+216'],
+  ['Turkménistan','+993'],
+  ['Turquie','+90'],
+  ['Tuvalu','+688'],
+  ['Ukraine','+380'],
+  ['Uruguay','+598'],
+  ['Vanuatu','+678'],
+  ['Vatican','+379'],
+  ['Venezuela','+58'],
+  ['Vietnam','+84'],
+  ['Yémen','+967'],
+  ['Zambie','+260'],
+  ['Zimbabwe','+263'],
+  ['Égypte','+20'],
+  ['Émirats arabes unis','+971'],
+  ['Équateur','+593'],
+  ['Érythrée','+291'],
+  ['États-Unis','+1'],
+  ['Éthiopie','+251'],
+  ['Îles Marshall','+692'],
+  ['Îles Salomon','+677'],
+];
+const DIAL_BY_COUNTRY = Object.fromEntries(COUNTRIES.map(([n,d])=>[n,d]));
+function countryOptionsHTML(selected){
+  return '<option value="">—</option>' + COUNTRIES.map(([n])=>
+    `<option value="${n}" ${selected===n?"selected":""}>${n}</option>`).join("");
+}
+
 function mapsLink(lat,lng){ return `https://www.google.com/maps?q=${lat},${lng}`; }
 function geoBadgeHTML(lat,lng,label){
   if(lat==null || lng==null) return "";
@@ -2454,23 +2657,24 @@ function geoBadgeHTML(lat,lng,label){
 /* =========================================================
    OUTIL — CONTACTS CLIQUABLES (Appel / WhatsApp / SMS)
    ========================================================= */
-function normalizePhone(raw){
+function normalizePhone(raw, pays){
   if(!raw) return null;
   let d = String(raw).replace(/[^\d+]/g,"");
   if(!d) return null;
   if(d.startsWith("+")) return d;
   if(d.startsWith("00")) return "+"+d.slice(2);
-  if(/^0\d{9}$/.test(d)) return "+225"+d.slice(1); // format local Côte d'Ivoire
-  if(/^\d{8,15}$/.test(d)) return "+"+d;
+  const dial = (pays && DIAL_BY_COUNTRY[pays]) || "+225"; // Côte d'Ivoire par défaut si pays inconnu
+  if(d.startsWith("0")) return dial + d.slice(1);
+  if(/^\d{6,15}$/.test(d)) return dial + d;
   return null;
 }
-function contactActionsHTML(raw){
-  const n = normalizePhone(raw);
+function contactActionsHTML(raw, pays){
+  const n = normalizePhone(raw, pays);
   if(!n) return "";
   const wa = n.replace("+","");
   return `<span class="contact-actions">
     <a href="tel:${n}" class="contact-btn" title="Appeler">📞</a>
-    <a href="https://wa.me/${wa}" target="_blank" class="contact-btn" title="WhatsApp (appel, vidéo, SMS)">💬</a>
+    <a href="https://wa.me/${wa}" target="_blank" class="contact-btn" title="WhatsApp (chat, appel, vidéo)">💬</a>
     <a href="sms:${n}" class="contact-btn" title="SMS">✉️</a>
   </span>`;
 }
@@ -2935,15 +3139,10 @@ routes.candidatForm = () => {
             <div class="field"><label>Domicile</label><input name="domicile"></div>
           </div>
           <div class="row2">
-            <div class="field"><label>Pays</label><input name="pays" placeholder="Ex : Côte d'Ivoire" list="paysList"></div>
+            <div class="field"><label>Pays</label><select name="pays">${countryOptionsHTML("Côte d'Ivoire")}</select></div>
             <div class="field"><label>Ville</label><input name="ville"></div>
           </div>
           <div class="field"><label>Nationalité</label><input name="nationalite" placeholder="Ex : Ivoirienne"></div>
-          <datalist id="paysList">
-            <option>Côte d'Ivoire</option><option>Sénégal</option><option>Mali</option><option>Burkina Faso</option>
-            <option>Guinée</option><option>Togo</option><option>Bénin</option><option>Maroc</option><option>France</option>
-            <option>Liban</option><option>Émirats arabes unis</option><option>Arabie saoudite</option>
-          </datalist>
           <div class="field">
             <label>Géolocalisation (avec le consentement du/de la candidat(e))</label>
             <button type="button" class="btn-sm" id="geoBtn">📍 Activer la géolocalisation</button>
@@ -3192,14 +3391,9 @@ routes.employeurForm = () => {
           </div>
           <div class="field"><label>Domicile / Adresse</label><input name="adresse"></div>
           <div class="row2">
-            <div class="field"><label>Pays</label><input name="pays" placeholder="Ex : Côte d'Ivoire" list="paysListEmp"></div>
+            <div class="field"><label>Pays</label><select name="pays">${countryOptionsHTML("Côte d'Ivoire")}</select></div>
             <div class="field"><label>Ville</label><input name="ville"></div>
           </div>
-          <datalist id="paysListEmp">
-            <option>Côte d'Ivoire</option><option>Sénégal</option><option>Mali</option><option>Burkina Faso</option>
-            <option>Guinée</option><option>Togo</option><option>Bénin</option><option>Maroc</option><option>France</option>
-            <option>Liban</option><option>Émirats arabes unis</option><option>Arabie saoudite</option>
-          </datalist>
           <div class="field"><label>Secteur d'activité</label><input name="secteurActivite" placeholder="Ex : Restauration, BTP, Ménage à domicile…"></div>
           <div class="field">
             <label>Géolocalisation (avec le consentement de l'employeur)</label>
@@ -3406,7 +3600,7 @@ routes.placementForm = async (params) => {
               </div>
             </div>
             <div class="row2">
-              <div class="field"><label>Pays du poste</label><input name="paysEmployeur" placeholder="Ex : Liban, France…" value="${v.paysEmployeur||""}"></div>
+              <div class="field"><label>Pays du poste</label><select name="paysEmployeur">${countryOptionsHTML(v.paysEmployeur||"Côte d'Ivoire")}</select></div>
               <div class="field"><label>Date de début</label><input type="date" name="dateDebut" value="${v.dateDebut||""}"></div>
             </div>
             <div class="field"><label>Date de fin (si connue)</label><input type="date" name="dateFin" value="${v.dateFin||""}"></div>
@@ -3929,7 +4123,7 @@ routes.validation = () => {
           <div class="section-title">Informations sur l'employé(e)</div>
           <div class="detail-grid">
             <div><div class="k">Nom complet</div><div class="v">${p.candidatNom||"—"}</div></div>
-            <div><div class="k">Contact</div><div class="v">${cand ? (cand.contact||"—") : "—"}${cand?contactActionsHTML(cand.contact):""}</div></div>
+            <div><div class="k">Contact</div><div class="v">${cand ? (cand.contact||"—") : "—"}${cand?contactActionsHTML(cand.contact, cand.pays):""}${cand&&cand.geoLat!=null?`<br>${geoBadgeHTML(cand.geoLat,cand.geoLng)}`:""}</div></div>
             <div><div class="k">Domicile</div><div class="v">${cand ? (cand.domicile||"—") : "—"}</div></div>
             <div><div class="k">Domaine</div><div class="v">${cand ? (cand.domaineCompetence||"—") : "—"}</div></div>
           </div>
@@ -3937,7 +4131,7 @@ routes.validation = () => {
           <div class="section-title">Informations sur l'employeur</div>
           <div class="detail-grid">
             <div><div class="k">Employeur</div><div class="v">${p.employeur||"—"}</div></div>
-            <div><div class="k">Contact employeur</div><div class="v">${p.employeurContact||"—"}${contactActionsHTML(p.employeurContact)}</div></div>
+            <div><div class="k">Contact employeur</div><div class="v">${p.employeurContact||"—"}${contactActionsHTML(p.employeurContact, p.paysEmployeur)}</div></div>
             <div><div class="k">Pays du poste</div><div class="v">${p.paysEmployeur||"—"}</div></div>
             <div><div class="k">Tâche</div><div class="v">${p.tache||"—"}</div></div>
             <div><div class="k">Salaire proposé</div><div class="v">${fmtMoney(p.salaire,p.devise)}</div></div>
@@ -4578,12 +4772,11 @@ routes.candidatDetail = async (params) => {
             <div class="thumb" id="candThumbId" style="${cand.photo?'cursor:pointer;':''}">${cand.photo?`<img src="${cand.photo}">`:"PHOTO"}</div>
             ${cand.photoEntiere?`<div class="thumb" id="candThumbFull" style="width:78px;height:96px;cursor:pointer;"><img src="${cand.photoEntiere}"></div>`:""}
             <div class="detail-grid" style="flex:1;">
-              <div><div class="k">Contact</div><div class="v">${cand.contact||"—"}${contactActionsHTML(cand.contact)}</div></div>
+              <div><div class="k">Contact</div><div class="v">${cand.contact||"—"}${contactActionsHTML(cand.contact, cand.pays)}${cand.geoLat!=null?`<br>${geoBadgeHTML(cand.geoLat,cand.geoLng)}`:""}</div></div>
               <div><div class="k">Âge</div><div class="v">${cand.age||"—"}</div></div>
               <div><div class="k">Domicile</div><div class="v">${cand.domicile||"—"}</div></div>
               <div><div class="k">Situation</div><div class="v">${cand.situationMatrimoniale||"—"}</div></div>
               <div><div class="k">Pays / Nationalité</div><div class="v">${cand.pays||"—"} / ${cand.nationalite||"—"}</div></div>
-              ${cand.geoLat!=null ? `<div><div class="k">Localisation</div><div class="v">${geoBadgeHTML(cand.geoLat,cand.geoLng)}</div></div>` : ""}
             </div>
           </div>
           ${galerieItems.length ? `
@@ -4622,7 +4815,7 @@ routes.candidatDetail = async (params) => {
           <div class="section-title">Famille &amp; références</div>
           <div class="detail-grid">
             ${Object.entries(relLabels).filter(([k])=>cand[k+"_nom"]).map(([k,label])=>`
-              <div><div class="k">${label}</div><div class="v">${cand[k+"_nom"]||""} — ${cand[k+"_contact"]||""}${contactActionsHTML(cand[k+"_contact"])}</div></div>
+              <div><div class="k">${label}</div><div class="v">${cand[k+"_nom"]||""} — ${cand[k+"_contact"]||""}${contactActionsHTML(cand[k+"_contact"], cand.pays)}</div></div>
             `).join("") || `<div class="hint">Aucune référence renseignée.</div>`}
           </div>
           <div class="section-title">Enregistré par</div>
@@ -4709,7 +4902,7 @@ routes.placementDetail = async (params) => {
         <div class="body">
           <div class="detail-grid">
             <div><div class="k">Candidat(e)</div><div class="v">${p.candidatNom||"—"}</div></div>
-            <div><div class="k">Contact employeur</div><div class="v">${p.employeurContact||"—"}${contactActionsHTML(p.employeurContact)}</div></div>
+            <div><div class="k">Contact employeur</div><div class="v">${p.employeurContact||"—"}${contactActionsHTML(p.employeurContact, p.paysEmployeur)}</div></div>
             <div><div class="k">Tâche</div><div class="v">${p.tache||"—"}</div></div>
             <div><div class="k">Salaire</div><div class="v">${fmtMoney(p.salaire,p.devise)}</div></div>
             <div><div class="k">Pays du poste</div><div class="v">${p.paysEmployeur||"—"}</div></div>
@@ -4761,12 +4954,11 @@ routes.employeurDetail = async (params) => {
         <div class="body">
           <div class="detail-grid">
             <div><div class="k">Contact</div><div class="v">${emp.contactNom||"—"} ${emp.contactFonction?`(${emp.contactFonction})`:""}</div></div>
-            <div><div class="k">Téléphone</div><div class="v">${emp.telephone||"—"}${contactActionsHTML(emp.telephone)}</div></div>
+            <div><div class="k">Téléphone</div><div class="v">${emp.telephone||"—"}${contactActionsHTML(emp.telephone, emp.pays)}${emp.geoLat!=null?`<br>${geoBadgeHTML(emp.geoLat,emp.geoLng)}`:""}</div></div>
             <div><div class="k">Email</div><div class="v">${emp.email||"—"}</div></div>
             <div><div class="k">Adresse</div><div class="v">${emp.adresse||"—"}</div></div>
             <div><div class="k">Pays / Ville</div><div class="v">${emp.pays||"—"} / ${emp.ville||"—"}</div></div>
             <div><div class="k">Secteur d'activité</div><div class="v">${emp.secteurActivite||"—"}</div></div>
-            ${emp.geoLat!=null ? `<div><div class="k">Localisation</div><div class="v">${geoBadgeHTML(emp.geoLat,emp.geoLng)}</div></div>` : ""}
           </div>
           <div class="section-title">Profil de l'employé(e) recherché(e)</div>
           <div class="detail-grid">

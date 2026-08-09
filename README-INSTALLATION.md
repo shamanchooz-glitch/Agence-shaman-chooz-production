@@ -204,6 +204,15 @@ même base Firebase déjà en place.
   recherché (type de contrat, niveau d'étude, expérience, langues, salaire,
   avantages…). Les agents comme l'administrateur peuvent créer, consulter et
   gérer ces fiches, et les relier directement à un placement.
+- **Indicatif téléphonique automatique pour 195 pays** : le champ « Pays »
+  est maintenant un menu déroulant listant tous les pays du monde (candidat,
+  employeur, pays du poste). L'indicatif correspondant (+225, +33, +1, +971…)
+  est ajouté automatiquement devant chaque numéro local, pour que les boutons
+  Appel / WhatsApp / SMS fonctionnent correctement partout dans le monde, pas
+  seulement en Côte d'Ivoire.
+- **Géolocalisation repositionnée** : elle apparaît désormais directement
+  sous le numéro de contact (candidat, employeur) partout où il est affiché,
+  y compris dans l'écran de validation admin, pour la retrouver plus vite.
 
 ## Besoin d'aide ?
 
