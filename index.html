@@ -3206,6 +3206,17 @@ routes.employeurForm = () => {
             <button type="button" class="btn-sm" id="geoBtnEmp">📍 Activer la géolocalisation</button>
             <span class="hint" id="geoStatusEmp" style="display:block;margin-top:6px;">Non activée</span>
           </div>
+          <div class="field">
+            <label>Documents (registre de commerce, CNI du contact, autres… — optionnel, jusqu'à 10)</label>
+            <div id="empDocGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-sm" id="empDocCam">📷 Prendre une photo</button>
+              <button type="button" class="btn-sm" id="empDocGal">🖼️ Choisir dans la galerie (plusieurs)</button>
+            </div>
+            <input type="file" accept="image/*" capture="environment" id="empDocCamInput" style="display:none;">
+            <input type="file" accept="image/*" multiple id="empDocGalInput" style="display:none;">
+            <span class="hint" id="empDocStatus">0 / 10 photo(s) ajoutée(s)</span>
+          </div>
         </div>
       </div>
 
@@ -3246,17 +3257,6 @@ routes.employeurForm = () => {
           </div>
           <div class="field"><label>Date de besoin</label><input type="date" name="dateBesoin"></div>
           <div class="field"><label>Description du poste</label><textarea name="descriptionPoste"></textarea></div>
-          <div class="field">
-            <label>Documents (registre de commerce, CNI du contact, autres… — optionnel, jusqu'à 10)</label>
-            <div id="empDocGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="btn-sm" id="empDocCam">📷 Prendre une photo</button>
-              <button type="button" class="btn-sm" id="empDocGal">🖼️ Choisir dans la galerie (plusieurs)</button>
-            </div>
-            <input type="file" accept="image/*" capture="environment" id="empDocCamInput" style="display:none;">
-            <input type="file" accept="image/*" multiple id="empDocGalInput" style="display:none;">
-            <span class="hint" id="empDocStatus">0 / 10 photo(s) ajoutée(s)</span>
-          </div>
         </div>
       </div>
 
