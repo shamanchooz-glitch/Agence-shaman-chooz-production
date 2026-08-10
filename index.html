@@ -1982,13 +1982,16 @@ var qrcode = function() {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, updateDoc, doc, getDocs, getDoc, deleteDoc,
+  getFirestore, collection, addDoc, updateDoc, doc, getDocs, getDoc, deleteDoc, setDoc,
   query, orderBy, onSnapshot, serverTimestamp, enableIndexedDbPersistence,
   arrayUnion, limit
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth, signInAnonymously, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getMessaging, getToken as getFcmToken, onMessage, isSupported as fcmIsSupported
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 /* =========================================================
    CONFIGURATION FIREBASE
@@ -2006,6 +2009,16 @@ const firebaseConfig = {
 };
 
 const ADMIN_CODE = "Shaman123chooz";
+
+/* =========================================================
+   NOTIFICATIONS PUSH (Firebase Cloud Messaging)
+   Colle ici la clé VAPID générée dans la console Firebase :
+   Paramètres du projet → Cloud Messaging → Certificats Web Push
+   → "Générer une paire de clés". Voir GUIDE-NOTIFICATIONS-PUSH.md
+   pour la marche à suivre complète (indispensable pour que les
+   notifications arrivent même application fermée).
+   ========================================================= */
+const VAPID_KEY = "COLLEZ_ICI_VOTRE_CLE_VAPID";
 
 let fb = null, db = null, auth = null, fbReady = false;
 let authReadyPromise = Promise.resolve(null);
@@ -2037,6 +2050,91 @@ function localDB(){
 function saveLocalDB(d){ localStorage.setItem(LOCAL_KEY, JSON.stringify(d)); }
 
 function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+
+/* ---------- Suivi global des écouteurs temps réel (Firestore onSnapshot) ----------
+   Chaque route peut ouvrir plusieurs écouteurs live (listenCandidats, listenPlacements…).
+   Sans coupure explicite au changement de route, un écouteur d'un écran quitté peut
+   se déclencher plus tard (ex: juste après une écriture) et réécraser le contenu de
+   l'écran actuellement affiché avec l'ancien écran. On les enregistre tous ici et on
+   les coupe systématiquement à chaque navigation (voir render()). */
+let _activeUnsubs = [];
+function _track(unsub){ _activeUnsubs.push(unsub); return unsub; }
+function _stopAllListeners(){ _activeUnsubs.forEach(u=>{ try{ u(); }catch(e){} }); _activeUnsubs = []; }
+
+/* ---------- Surveillance globale pour l'administrateur : notifie de TOUT ce que
+   les agents enregistrent (candidat, placement, employeur), partout dans le monde,
+   en temps réel, tant que l'application reste ouverte sur cet appareil. Volontairement
+   indépendante de _activeUnsubs : elle ne doit PAS être coupée à chaque changement
+   d'écran, seulement à la déconnexion. ---------- */
+let _adminWatchActive = false;
+let _adminWatchUnsubs = [];
+function notifyAdmin(title, body){
+  toast(`🔔 ${title}`);
+  if("Notification" in window && Notification.permission === "granted"){
+    try{ new Notification(title, {body, icon:"icon-192.png"}); }catch(e){}
+  }
+}
+function startAdminWatchers(){
+  if(_adminWatchActive || !fbReady) return;
+  _adminWatchActive = true;
+  authReadyPromise.then(()=>{
+    function watch(collName, label, describe){
+      let firstSnap = true;
+      const q = query(collection(db, collName), orderBy("creeLe","desc"), limit(25));
+      const unsub = onSnapshot(q, snap=>{
+        if(firstSnap){ firstSnap = false; return; } // on ignore le lot initial (historique)
+        snap.docChanges().forEach(ch=>{
+          if(ch.type !== "added") return;
+          const data = ch.doc.data();
+          const agent = data.agentNom || "";
+          if(!agent || agent === "Administrateur" || agent.startsWith("Superviseur")) return; // uniquement les agents
+          notifyAdmin(`Nouveau ${label}`, describe(data, agent));
+        });
+      }, ()=>{});
+      _adminWatchUnsubs.push(unsub);
+    }
+    watch("candidats", "candidat(e)", (d,a)=> `${d.nom||""} ${d.prenoms||""} — par ${a} (${d.pays||"pays non précisé"})`);
+    watch("placements", "placement", (d,a)=> `${d.candidatNom||""} → ${d.employeur||""} — par ${a}`);
+    watch("employeurs", "employeur", (d,a)=> `${d.nomEmployeur||""} — par ${a} (${d.pays||"pays non précisé"})`);
+  });
+}
+function stopAdminWatchers(){
+  _adminWatchUnsubs.forEach(u=>{ try{ u(); }catch(e){} });
+  _adminWatchUnsubs = [];
+  _adminWatchActive = false;
+}
+
+/* ---------- Notifications push (Firebase Cloud Messaging) — arrivent même
+   application fermée, à condition que le Cloud Function serveur soit déployé
+   (voir GUIDE-NOTIFICATIONS-PUSH.md) et que VAPID_KEY soit renseignée ci-dessus. ---------- */
+let fcmMessaging = null;
+async function setupPushNotifications(){
+  if(!fbReady || !firebaseConfig.apiKey || VAPID_KEY === "COLLEZ_ICI_VOTRE_CLE_VAPID") return false;
+  if(!("serviceWorker" in navigator) || !("Notification" in window)) return false;
+  try{
+    const supported = await fcmIsSupported();
+    if(!supported) return false;
+    if(Notification.permission !== "granted"){
+      const res = await Notification.requestPermission();
+      if(res !== "granted") return false;
+    }
+    const reg = await navigator.serviceWorker.register("firebase-messaging-sw.js");
+    if(!fcmMessaging) fcmMessaging = getMessaging(fb);
+    const token = await getFcmToken(fcmMessaging, {vapidKey: VAPID_KEY, serviceWorkerRegistration: reg});
+    if(!token) return false;
+    await authReadyPromise;
+    await setDoc(doc(db,"fcmTokens", token), {
+      token, role: session.role || "admin", region: session.region || null, savedAt: serverTimestamp()
+    }, {merge:true});
+    onMessage(fcmMessaging, (payload)=>{
+      const title = (payload.notification && payload.notification.title) || "Shaman Chooz";
+      const body = (payload.notification && payload.notification.body) || "";
+      toast(`🔔 ${title}`);
+      try{ new Notification(title, {body, icon:"icon-192.png"}); }catch(e){}
+    });
+    return true;
+  }catch(e){ console.warn("Notifications push indisponibles:", e); return false; }
+}
 
 /* ---------- Couche de données unifiée (Firestore si dispo, sinon local) ---------- */
 const DataLayer = {
@@ -2140,10 +2238,10 @@ const DataLayer = {
         const q = query(collection(db,"agents"), orderBy("creeLe","desc"));
         unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
       });
-      return ()=>{ stopped = true; unsub(); };
+      return _track(()=>{ stopped = true; unsub(); });
     }else{
       cb(localDB().agents || []);
-      return ()=>{};
+      return _track(()=>{});
     }
   },
   /* ---------- Fichiers/photos supplémentaires d'un candidat (sous-collection) ---------- */
@@ -2169,10 +2267,10 @@ const DataLayer = {
         const q = query(collection(db,"candidats",candidatId,"fichiers"), orderBy("ts","asc"));
         unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
       });
-      return ()=>{ stopped = true; unsub(); };
+      return _track(()=>{ stopped = true; unsub(); });
     }else{
       cb(((localDB().fichiers||{})[candidatId]) || []);
-      return ()=>{};
+      return _track(()=>{});
     }
   },
   async deleteFichier(candidatId, fichierId){
@@ -2206,10 +2304,10 @@ const DataLayer = {
         const q = query(collection(db,"employeurs",employeurId,"fichiers"), orderBy("ts","asc"));
         unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
       });
-      return ()=>{ stopped = true; unsub(); };
+      return _track(()=>{ stopped = true; unsub(); });
     }else{
       cb(((localDB().employeurFichiers||{})[employeurId]) || []);
-      return ()=>{};
+      return _track(()=>{});
     }
   },
   async logJournal(entry){
@@ -2236,10 +2334,10 @@ const DataLayer = {
         const q = query(collection(db,"journal"), orderBy("ts","desc"), limit(200));
         unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
       });
-      return ()=>{ stopped = true; unsub(); };
+      return _track(()=>{ stopped = true; unsub(); });
     }else{
       cb((localDB().journal||[]).slice().reverse());
-      return ()=>{};
+      return _track(()=>{});
     }
   },
   async addActualite(data){
@@ -2264,10 +2362,10 @@ const DataLayer = {
         const q = query(collection(db,"actualites"), orderBy("ts","desc"), limit(30));
         unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
       });
-      return ()=>{ stopped = true; unsub(); };
+      return _track(()=>{ stopped = true; unsub(); });
     }else{
       cb(localDB().actualites || []);
-      return ()=>{};
+      return _track(()=>{});
     }
   },
   listenCandidats(cb){
@@ -2279,10 +2377,10 @@ const DataLayer = {
         const q = query(collection(db,"candidats"), orderBy("creeLe","desc"));
         unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))));
       });
-      return ()=>{ stopped = true; unsub(); };
+      return _track(()=>{ stopped = true; unsub(); });
     }else{
       cb(localDB().candidats.slice().reverse());
-      return ()=>{};
+      return _track(()=>{});
     }
   },
   listenPlacements(cb){
@@ -2294,10 +2392,10 @@ const DataLayer = {
         const q = query(collection(db,"placements"), orderBy("creeLe","desc"));
         unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))));
       });
-      return ()=>{ stopped = true; unsub(); };
+      return _track(()=>{ stopped = true; unsub(); });
     }else{
       cb(localDB().placements.slice().reverse());
-      return ()=>{};
+      return _track(()=>{});
     }
   },
   /* ---------- Employeurs (fiche entreprise/particulier + profil recherché) ---------- */
@@ -2342,10 +2440,10 @@ const DataLayer = {
         const q = query(collection(db,"employeurs"), orderBy("creeLe","desc"));
         unsub = onSnapshot(q, snap => cb(snap.docs.map(dd=>({id:dd.id, ...dd.data()}))), ()=>cb([]));
       });
-      return ()=>{ stopped = true; unsub(); };
+      return _track(()=>{ stopped = true; unsub(); });
     }else{
       cb((localDB().employeurs||[]).slice().reverse());
-      return ()=>{};
+      return _track(()=>{});
     }
   }
 };
@@ -2943,6 +3041,7 @@ function currentRoute(){
 }
 
 function render(){
+  _stopAllListeners();
   const {name, params} = currentRoute();
   if(name !== "home"){
     $("#backBtn").onclick = ()=> history.length>1 ? history.back() : nav("home");
@@ -2956,6 +3055,7 @@ function render(){
 /* ---------------- HOME ---------------- */
 routes.home = () => {
   session = {role:null};
+  stopAdminWatchers();
   setTop("Agence Shaman Chooz Production","Fiches & Placements", false);
   mainEl.innerHTML = `
     <div class="hero">
@@ -3793,8 +3893,8 @@ routes.adminLogin = () => {
   };
   $("#codeSubmit").onclick = ()=>{
     const val = $("#codeInput").value;
-    if(val === ADMIN_CODE){ session.role="admin"; session.region=null; nav("adminHome"); }
-    else if(val === SUPERVISOR_CODE){ session.role="supervisor"; nav("supervisorRegion"); }
+    if(val === ADMIN_CODE){ session.role="admin"; session.region=null; startAdminWatchers(); setupPushNotifications(); nav("adminHome"); }
+    else if(val === SUPERVISOR_CODE){ session.role="supervisor"; startAdminWatchers(); setupPushNotifications(); nav("supervisorRegion"); }
     else{ $("#codeErr").textContent = "Code incorrect."; }
   };
   $("#codeInput").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#codeSubmit").click(); });
@@ -4336,21 +4436,24 @@ routes.rolesInfo = () => {
 /* ---------------- OUTIL : NOTIFICATIONS NAVIGATEUR ---------------- */
 routes.notifications = () => {
   if(!isAdminish()){ nav("adminLogin"); return; }
-  setTop("Notifications","Alertes sur cet appareil", true);
+  setTop("Notifications","Alertes en temps réel", true);
   const supported = "Notification" in window;
   const perm = supported ? Notification.permission : "unsupported";
+  const pushConfigured = VAPID_KEY !== "COLLEZ_ICI_VOTRE_CLE_VAPID";
   mainEl.innerHTML = `
     <div class="panel"><div class="body">
-      <p style="margin-top:0;">Recevez une notification sur cet appareil quand un placement attend votre validation ou qu'une échéance approche.</p>
-      <p class="hint">Statut actuel : <strong>${perm==="granted"?"Activées ✅":perm==="denied"?"Bloquées par le navigateur ❌":perm==="unsupported"?"Non prises en charge sur cet appareil":"Non activées"}</strong></p>
+      <p style="margin-top:0;">Dès qu'un agent enregistre un(e) candidat(e), un placement ou un employeur — où qu'il se trouve dans le monde — vous recevez une alerte instantanée.</p>
+      <p class="hint">Alertes app ouverte : <strong>${perm==="granted"?"Activées ✅":perm==="denied"?"Bloquées par le navigateur ❌":perm==="unsupported"?"Non prises en charge sur cet appareil":"Non activées"}</strong></p>
+      <p class="hint">Alertes app fermée (push) : <strong>${pushConfigured?"Configurées sur ce serveur ✅ — activez-les ci-dessous sur cet appareil":"⚠️ Pas encore configurées — voir GUIDE-NOTIFICATIONS-PUSH.md"}</strong></p>
       ${perm!=="granted" && supported ? `<button class="btn stamp" id="enableNotif">🔔 Activer les notifications</button>` : ""}
       ${perm==="granted" ? `<button class="btn ghost" id="testNotif">Envoyer une notification test</button>` : ""}
+      <p class="hint" style="margin-top:16px;">Une fois configurées (guide fourni), les notifications vous arrivent même téléphone verrouillé ou application fermée — comme WhatsApp. Dans tous les cas, toutes les fiches enregistrées restent sauvegardées et visibles dès que vous ouvrez l'app.</p>
     </div></div>
   `;
   const btn = $("#enableNotif");
   if(btn) btn.onclick = async ()=>{
     const res = await Notification.requestPermission();
-    if(res==="granted"){ toast("Notifications activées ✓"); new Notification("Shaman Chooz", {body:"Les notifications sont maintenant actives."}); }
+    if(res==="granted"){ toast("Notifications activées ✓"); new Notification("Shaman Chooz", {body:"Les notifications sont maintenant actives."}); startAdminWatchers(); const ok = await setupPushNotifications(); if(!ok) toast("⚠️ Notifications push (app fermée) non configurées — voir GUIDE-NOTIFICATIONS-PUSH.md"); }
     render();
   };
   const testBtn = $("#testNotif");

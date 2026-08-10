@@ -1,4 +1,4 @@
-const CACHE_NAME = "shaman-bara-center-v9";
+const CACHE_NAME = "shaman-bara-center-v12";
 const CORE_ASSETS = [
   "./",
   "./index.html",
